@@ -18,8 +18,10 @@ public class LSystem : MonoBehaviour {
 	public float e = 0.5f;
 	public float smin = 0;
 	public int iter = 8;
+	public float leafMid = 0.5f;
 	public float leafLength = 2;
 	public float leafWidth = 2;
+	public float leafRotate = 0;
 	List<Vector3> vertices = new List<Vector3>();
 	List<int> indices = new List<int>();
 
@@ -43,15 +45,21 @@ public class LSystem : MonoBehaviour {
 		}
 	}
 
+	int count = 0;
 	void Update(){
 		if (Input.GetKey(KeyCode.R)){
 			UpdateTree ();
 		}
+#if UNITY_EDITOR
+		if (count++ % 30==0) {
+			UpdateTree ();
+		}
+#endif
 	}
 
 	void ExpandRules(){
 		str.Clear();
-		str.Add(new LSElement(LSElement.LSSymbol.A, length0, w0));
+		str.Add(new LSElement(LSElement.LSSymbol.APEX, length0, w0));
 
 		// string debug = "Expanding "+str[0]+" to ";
 
@@ -73,10 +81,11 @@ public class LSystem : MonoBehaviour {
 	void AddLeaf(Matrix4x4 m, float len, float width){
 		len *= leafLength;
 		width *= leafWidth;
+
 		Vector3 p0 = m.MultiplyPoint(new Vector3(0, 0, 0));
-		Vector3 p1 = m.MultiplyPoint(new Vector3(0, width, len*0.5f));
+		Vector3 p1 = m.MultiplyPoint(Quaternion.Euler(0,0,leafRotate) * new Vector3(0, width, len*leafMid));
 		Vector3 p2 = m.MultiplyPoint(new Vector3(0, 0, len));
-		Vector3 p3 = m.MultiplyPoint(new Vector3(0, -width, len*0.5f));
+		Vector3 p3 = m.MultiplyPoint(Quaternion.Euler(0,0,-leafRotate) * new Vector3(0, -width, len*leafMid));
 		verticesLeaf.Add (p0);
 		verticesLeaf.Add (p1);
 		verticesLeaf.Add (p2);
@@ -134,10 +143,10 @@ public class LSystem : MonoBehaviour {
 			case LSElement.LSSymbol.ROLL:
 				turtle.Roll(elem.data[0]);
 				break;
-			case LSElement.LSSymbol.LEFT_BRACKET:
+			case LSElement.LSSymbol.PUSH_STATE:
 				turtle.Push();
 				break;
-			case LSElement.LSSymbol.RIGHT_BRACKET:
+			case LSElement.LSSymbol.POP_STATE:
 				turtle.Pop();
 				break;
 			case LSElement.LSSymbol.WIDTH:

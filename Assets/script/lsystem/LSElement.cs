@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class LSElement {
-	public enum LSSymbol {TURN = '+', ROLL = '/', WIDTH='!', A = 'A', LEFT_BRACKET = '[', RIGHT_BRACKET=']', DRAW='F', LEAF = 'L'};
+	public enum LSSymbol {TURN = '+', ROLL = '/', WIDTH='!', APEX = 'A', PUSH_STATE = '[', POP_STATE=']', DRAW='F', LEAF = 'L'};
 
 	public LSSymbol symbol;
 	public float[] data;

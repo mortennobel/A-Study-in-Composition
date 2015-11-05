@@ -29,7 +29,7 @@ public class Rule {
 	
 
 	public bool Apply(LSElement elem, List<LSElement> outList, bool lastIter){
-		if (elem.symbol == LSElement.LSSymbol.A){
+		if (elem.symbol == LSElement.LSSymbol.APEX){
 			float length = elem.data[0];
 			float width = elem.data[1];
 			if (length >= smin) {
@@ -37,22 +37,22 @@ public class Rule {
 				outList.Add (new LSElement (LSElement.LSSymbol.WIDTH, width));
 				float endScale = Mathf.Max (Mathf.Pow (q, e), Mathf.Pow (1.0f - q, e)); // extension to give a better looking result
 				outList.Add (new LSElement (LSElement.LSSymbol.DRAW, length, endScale));
-				outList.Add (new LSElement (LSElement.LSSymbol.LEFT_BRACKET));
+				outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
 				outList.Add (new LSElement (LSElement.LSSymbol.TURN, alpha1));
 				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, phi1));
-				outList.Add (new LSElement (LSElement.LSSymbol.A, length * r1, width * Mathf.Pow (q, e)));
+				outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r1, width * Mathf.Pow (q, e)));
 				if (lastIter){
 					outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
 				}
-				outList.Add (new LSElement (LSElement.LSSymbol.RIGHT_BRACKET));
-				outList.Add (new LSElement (LSElement.LSSymbol.LEFT_BRACKET));
+				outList.Add (new LSElement (LSElement.LSSymbol.POP_STATE));
+				outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
 				outList.Add (new LSElement (LSElement.LSSymbol.TURN, alpha2));
 				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, phi2));
-				outList.Add (new LSElement (LSElement.LSSymbol.A, length * r2, width * Mathf.Pow (1.0f - q, e)));
+				outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r2, width * Mathf.Pow (1.0f - q, e)));
 				if (lastIter){
 					outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
 				}
-				outList.Add (new LSElement (LSElement.LSSymbol.RIGHT_BRACKET));
+				outList.Add (new LSElement (LSElement.LSSymbol.POP_STATE));
 #else
 				outList.Add(new LSElement(LSElement.LSSymbol.DRAW, length, 1));
 				outList.Add(new LSElement(LSElement.LSSymbol.A, length*r1, width*Mathf.Pow(q,e)));
