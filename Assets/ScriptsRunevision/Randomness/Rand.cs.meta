@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 37d0d30f694624e248d86fc125be8ef5
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - m_ExtensionPtr: {instanceID: 0}
+  - m_Script: {fileID: 11500000, guid: 37d0d30f694624e248d86fc125be8ef5, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
