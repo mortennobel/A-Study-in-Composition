@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class LSystem : MonoBehaviour {
+	public MeshFilter branches;
+	public MeshFilter leaves;
 	List<LSElement> str;
 	public int length0 = 100;
 	public float w0 = 20;
@@ -16,26 +18,36 @@ public class LSystem : MonoBehaviour {
 	public float e = 0.5f;
 	public float smin = 0;
 	public int iter = 8;
+	public float leafLength = 2;
+	public float leafWidth = 2;
 	List<Vector3> vertices = new List<Vector3>();
 	List<int> indices = new List<int>();
-	int count = 0;
+
+	List<Vector3> verticesLeaf = new List<Vector3>();
+	List<int> indicesLeaf = new List<int>();
+
 	void Start(){
 		str = new List<LSElement>();
+		UpdateTree ();
 	}
 
+	void UpdateTree(){
+		ExpandRules();
+		var meshes = Interpret();
+		var meshFilters = new MeshFilter[]{branches,leaves};
+		for (int i = 0; i < meshes.Length; i++) {
+			meshes[i].RecalculateNormals ();
+			meshes[i].uv = new Vector2[meshes[i].vertexCount];
+			meshes [i].RecalculateBounds ();
+			meshFilters[i].mesh = meshes[i];
+		}
+	}
 
 	void Update(){
-		if (count%10==0){
-			ExpandRules();
-			var mesh = Interpret();
-			mesh.RecalculateNormals();
-			mesh.uv = new Vector2[mesh.vertexCount];
-			GetComponent<MeshFilter>().mesh = mesh;
+		if (Input.GetKey(KeyCode.R)){
+			UpdateTree ();
 		}
-		count++;
 	}
-
-
 
 	void ExpandRules(){
 		str.Clear();
@@ -46,8 +58,9 @@ public class LSystem : MonoBehaviour {
 		Rule r = new Rule(alpha1, alpha2, phi1, phi2, r1, r2, q, e, smin);
 		for (int i=0;i<iter;i++){
 			List<LSElement> outList = new List<LSElement>();
+			bool lastIter = (i == iter-1);
 			foreach (var s in str){
-				r.Apply(s, outList);
+				r.Apply(s, outList, lastIter);
 			}
 			str = outList;
 		}
@@ -55,6 +68,25 @@ public class LSystem : MonoBehaviour {
 			debug += s;
 		}
 		Debug.Log(debug);*/
+	}
+
+	void AddLeaf(Matrix4x4 m, float len, float width){
+		len *= leafLength;
+		width *= leafWidth;
+		Vector3 p0 = m.MultiplyPoint(new Vector3(0, 0, 0));
+		Vector3 p1 = m.MultiplyPoint(new Vector3(0, width, len*0.5f));
+		Vector3 p2 = m.MultiplyPoint(new Vector3(0, 0, len));
+		Vector3 p3 = m.MultiplyPoint(new Vector3(0, -width, len*0.5f));
+		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p1);
+		verticesLeaf.Add (p2);
+
+		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p2);
+		verticesLeaf.Add (p3);
+		for (int j=0;j<6;j++){
+			indicesLeaf.Add(indicesLeaf.Count);
+		}
 	}
 
 	void AddCone(Matrix4x4 m, float l, float w0, float w1){
@@ -84,13 +116,14 @@ public class LSystem : MonoBehaviour {
 		}
 	}
 
-	public Mesh Interpret(){
-		 
-
+	public Mesh[] Interpret(){
 		Turtle turtle = new Turtle(w0);
 
 		foreach (var elem in str){
 			switch (elem.symbol){
+			case LSElement.LSSymbol.LEAF:
+				AddLeaf (turtle.Peek().M,elem.data [0], elem.data [1]); 
+				break;
 			case LSElement.LSSymbol.DRAW:
 				AddCone(turtle.Peek().M, elem.data[0], turtle.GetWidth(), turtle.GetWidth() * elem.data[1]);
 				turtle.Move(elem.data[0]);
@@ -117,7 +150,13 @@ public class LSystem : MonoBehaviour {
 		mesh.triangles = indices.ToArray();
 		vertices.Clear();
 		indices.Clear();
-		return mesh;
+		Mesh meshLeafs = new Mesh();
+		meshLeafs.vertices = verticesLeaf.ToArray();
+		meshLeafs.triangles = indicesLeaf.ToArray();
+		verticesLeaf.Clear();
+		indicesLeaf.Clear();
+
+		return new Mesh[]{mesh, meshLeafs};
 	}
 
 	void OnGUI(){
@@ -133,6 +172,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.4f;
 			smin = 0;
 			iter = 10;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(50,0,50,30), "Fig.b")){
 			r1 = 0.65f;
@@ -146,6 +186,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.5f;
 			smin = 1.7f;
 			iter = 10;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(100,0,50,30), "Fig.c")){
 			r1 = 0.5f;
@@ -159,6 +200,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.5f;
 			smin = 0.5f;
 			iter = 9;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(150,0,50,30), "Fig.d")){
 			r1 = 0.6f;
@@ -172,6 +214,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.5f;
 			smin = 0.0f;
 			iter = 10;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(200,0,50,30), "Fig.e")){
 			r1 = 0.58f;
@@ -185,6 +228,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.5f;
 			smin = 1.0f;
 			iter = 10;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(250,0,50,30), "Fig.f")){
 			r1 = 0.92f;
@@ -198,6 +242,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.0f;
 			smin = 0.5f;
 			iter = 12;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(300,0,50,30), "Fig.g")){
 			r1 = 0.80f;
@@ -211,6 +256,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.5f;
 			smin = 0.0f;
 			iter = 10;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(350,0,50,30), "Fig.h")){
 			r1 = 0.95f;
@@ -224,6 +270,7 @@ public class LSystem : MonoBehaviour {
 			e = 0.45f;
 			smin = 25.0f;
 			iter = 12;
+			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(400,0,50,30), "Fig.i")){
 			r1 = 0.55f;
@@ -237,6 +284,10 @@ public class LSystem : MonoBehaviour {
 			e = 0.00f;
 			smin = 5.0f;
 			iter = 12;
+			UpdateTree ();
+		}
+		if (GUI.Button (new Rect (450, 0, 50, 30), "Update")) {
+			UpdateTree ();
 		}
 
 	}
