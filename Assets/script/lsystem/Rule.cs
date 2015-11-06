@@ -5,13 +5,9 @@ using System.Collections.Generic;
 public class Rule {
 	
 	LSystem lsys;
-	public Vector2 branches;
 
-
-	public Rule (Vector2 turn1, Vector2 turn2,Vector2 turn3, Vector2 roll1, Vector2 roll2,Vector2 roll3, Vector2 lengthScale1, Vector2 lengthScale2, Vector2 lengthScale3, Vector2 q, Vector2 e, Vector2 smin, Vector2 branches,LSystem lsys)
+	public Rule (LSystem lsys)
 	{
-		
-
 		this.lsys = lsys;
 
 	}
@@ -21,6 +17,7 @@ public class Rule {
 		if (elem.symbol == LSElement.LSSymbol.APEX){
 			float length = elem.data[0];
 			float width = elem.data[1];
+
 			if (length >= lsys.Eval(lsys.smin)) {
 				outList.Add (new LSElement (LSElement.LSSymbol.WIDTH, width));
 				float e = lsys.Eval (lsys.e);
@@ -46,7 +43,8 @@ public class Rule {
 					outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
 					outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(turn[i])));
 					outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(roll[i])));
-
+					float thinBranch = Mathf.Pow (1.0f - width / lsys.Eval (lsys.initialWidth),3.0f);
+					outList.Add (new LSElement (LSElement.LSSymbol.GRAVITY, thinBranch*lsys.gravity));
 					if (lastIter) {
 						outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
 					} else {

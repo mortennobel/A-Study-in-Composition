@@ -50,6 +50,9 @@ public class LSystem : MonoBehaviour {
 	public Vector2 leafWidth = Vector2.one * 2;
 	[MinMaxRange(-100,100)]
 	public Vector2 leafRotate = Vector2.one * 0;
+	//[MinMaxRange(0,1)]
+	public float gravity = 0.5f;
+
 	List<Vector3> vertices = new List<Vector3>();
 	List<int> indices = new List<int>();
 
@@ -91,8 +94,6 @@ public class LSystem : MonoBehaviour {
 		var renderer = go.AddComponent<MeshRenderer> ();
 		renderer.material = material;
 	}
-
-
 
 	public Mesh[] Build(){
 		ResetRandom (seed);		 		
@@ -149,7 +150,7 @@ public class LSystem : MonoBehaviour {
 
 		// string debug = "Expanding "+str[0]+" to ";
 
-		Rule r = new Rule(turn1, turn2, turn3, roll1, roll2, roll3, lengthScale1, lengthScale2, lengthScale3,  q, e, smin, branchNo, this);
+		Rule r = new Rule(this);
 		bool continueLoop = true;
 		for (int i=0;continueLoop;i++){
 			continueLoop = false;
@@ -256,6 +257,9 @@ public class LSystem : MonoBehaviour {
 				break;
 			case LSElement.LSSymbol.WIDTH:
 				turtle.SetWidth(elem.data[0]);
+				break;
+			case LSElement.LSSymbol.GRAVITY:
+				turtle.Gravity(elem.data[0]);
 				break;
 			}
 		}
