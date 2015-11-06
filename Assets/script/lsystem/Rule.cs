@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class Rule {
-	public Vector2 alpha1;
-	public Vector2 alpha2;
-	public Vector2 phi1;
-	public Vector2 phi2;
+	public Vector2 turn1;
+	public Vector2 turn2;
+	public Vector2 roll1;
+	public Vector2 roll2;
 	public Vector2 r1;
 	public Vector2 r2;
 	public Vector2 q;
@@ -15,13 +15,13 @@ public class Rule {
 	LSystem lsys;
 
 
-	public Rule (Vector2 alpha1, Vector2 alpha2, Vector2 phi1, Vector2 phi2, Vector2 r1, Vector2 r2, Vector2 q, Vector2 e, Vector2 smin, LSystem lsys)
+	public Rule (Vector2 turn1, Vector2 turn2, Vector2 roll1, Vector2 roll2, Vector2 endRadius1, Vector2 r2, Vector2 q, Vector2 e, Vector2 smin, LSystem lsys)
 	{
-		this.alpha1 = alpha1;
-		this.alpha2 = alpha2;
-		this.phi1 = phi1;
-		this.phi2 = phi2;
-		this.r1 = r1;
+		this.turn1 = turn1;
+		this.turn2 = turn2;
+		this.roll1 = roll1;
+		this.roll2 = roll2;
+		this.r1 = endRadius1;
 		this.r2 = r2;
 		this.q = q;
 		this.e = e;
@@ -43,27 +43,37 @@ public class Rule {
 				float endScale = Mathf.Max (Mathf.Pow (q, e), Mathf.Pow (1.0f - q, e)); // extension to give a better looking result
 				outList.Add (new LSElement (LSElement.LSSymbol.DRAW, length, endScale));
 				outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
-				outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(alpha1)));
-				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(phi1)));
-				outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r1, width * Mathf.Pow (q, e)));
-				if (lastIter){
-					outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
+				outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(turn1)));
+				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(roll1)));
+
+				if (lastIter) {
+					outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
+				} else {
+					outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r1, width * Mathf.Pow (q, e)));	
 				}
 				outList.Add (new LSElement (LSElement.LSSymbol.POP_STATE));
 				outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
-				outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(alpha2)));
-				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(phi2)));
-				outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r2, width * Mathf.Pow (1.0f - q, e)));
-				if (lastIter){
-					outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
+				outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(turn2)));
+				outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(roll2)));
+
+				if (lastIter) {
+					outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
+				} else {
+					outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * r2, width * Mathf.Pow (1.0f - q, e)));
 				}
 				outList.Add (new LSElement (LSElement.LSSymbol.POP_STATE));
 			} else {
-				outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
+				outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
 			}
+			return true;
+		} else if (elem.symbol == LSElement.LSSymbol.LEAF_ROD) {
+			float length = elem.data [0];
+			float width = elem.data [1];
+			outList.Add (new LSElement (LSElement.LSSymbol.LEAF, length, width));
+			return true;
 		} else {
 			outList.Add(elem);
+			return false;
 		}
-		return false;
 	}
 }

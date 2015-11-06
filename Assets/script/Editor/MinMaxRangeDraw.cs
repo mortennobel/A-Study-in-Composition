@@ -11,7 +11,7 @@ public class MinMaxRangeDraw : PropertyDrawer {
 
 		// Draw label
 		var position = EditorGUI.PrefixLabel (positionOld, GUIUtility.GetControlID (FocusType.Passive), label);
-
+		position.height *= 0.5f;
 		// Don't make child fields be indented
 		var indent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
@@ -41,6 +41,6 @@ public class MinMaxRangeDraw : PropertyDrawer {
 
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label)
 	{
-		return EditorGUIUtility.singleLineHeight * 2;
+		return EditorGUIUtility.singleLineHeight * 2.0f;
 	}
 }
