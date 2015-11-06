@@ -9,9 +9,7 @@ public class Rule {
 	public Rule (LSystem lsys)
 	{
 		this.lsys = lsys;
-
 	}
-	
 
 	public bool Apply(LSElement elem, List<LSElement> outList, bool lastIter){
 		if (elem.symbol == LSElement.LSSymbol.APEX){

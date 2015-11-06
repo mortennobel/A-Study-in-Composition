@@ -51,7 +51,7 @@ public class LSystem : MonoBehaviour {
 	[MinMaxRange(-100,100)]
 	public Vector2 leafRotate = Vector2.one * 0;
 	//[MinMaxRange(0,1)]
-	public float gravity = 0.5f;
+	public float gravity = 0.25f;
 
 	List<Vector3> vertices = new List<Vector3>();
 	List<int> indices = new List<int>();
