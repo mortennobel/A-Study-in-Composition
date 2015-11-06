@@ -283,21 +283,34 @@ public class LSystem : MonoBehaviour {
 			float alpha = 2.0f*Mathf.PI*i/(float)N;
 			Vector3 p0 = m.MultiplyPoint(new Vector3(w0 * Mathf.Cos(alpha), w0 * Mathf.Sin(alpha), 0));
 			Vector3 p1 = m.MultiplyPoint(new Vector3(w1 * Mathf.Cos(alpha), w1 * Mathf.Sin(alpha), l));
+			Vector3 p2 = m.MultiplyPoint(new Vector3(0.5f*w1 * Mathf.Cos(alpha), 0.5f*w1 * Mathf.Sin(alpha), l+ w1));
 			vertices.Add(p0);
 			uvs.Add(Vector2.one*dist);
 			vertices.Add(p1);
 			uvs.Add(Vector2.one*(dist+l));
+			vertices.Add(p2);
+			uvs.Add(Vector2.one*(dist+l+w1));
 		}
 		for (int i = 0; i < N; i++) {
-			int offset = i * 2;
+			int offset = i * 3;
 			indices.Add (initialIndex+offset+1);
 			indices.Add (initialIndex+offset);
-
-			indices.Add (initialIndex+(offset+2)%(N*2));
+			indices.Add (initialIndex+(offset+3)%(N*3));
 
 			indices.Add (initialIndex+offset+1);
-			indices.Add (initialIndex+(offset+2)%(N*2));
-			indices.Add (initialIndex+(offset+3)%(N*2));
+			indices.Add (initialIndex+(offset+3)%(N*3));
+			indices.Add (initialIndex+(offset+4)%(N*3));
+
+			indices.Add (initialIndex+offset+2);
+			indices.Add (initialIndex+offset+1);
+			indices.Add (initialIndex+(offset+4)%(N*3));
+
+			indices.Add (initialIndex+offset+2);
+			indices.Add (initialIndex+(offset+4)%(N*3));
+			indices.Add (initialIndex+(offset+5)%(N*3));
+
+
+
 		}
 	}
 
