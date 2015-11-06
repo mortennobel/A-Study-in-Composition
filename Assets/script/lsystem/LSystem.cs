@@ -6,7 +6,9 @@ public class LSystem : MonoBehaviour {
 	public MeshFilter branches;
 	public MeshFilter leaves;
 	List<LSElement> str;
-	public int length0 = 100;
+
+	[MinMaxRange(5,200)]
+	public Vector2 length0 = new Vector2(100,100);
 	public float w0 = 20;
 	public float alpha1 = 30;
 	public float alpha2 = -30;
@@ -57,9 +59,13 @@ public class LSystem : MonoBehaviour {
 #endif
 	}
 
+	float Eval(Vector2 v){
+		return Random.Range (v.x, v.y);
+	}
+
 	void ExpandRules(){
 		str.Clear();
-		str.Add(new LSElement(LSElement.LSSymbol.APEX, length0, w0));
+		str.Add(new LSElement(LSElement.LSSymbol.APEX, Eval(length0), w0));
 
 		// string debug = "Expanding "+str[0]+" to ";
 
@@ -99,9 +105,9 @@ public class LSystem : MonoBehaviour {
 	}
 
 	void AddCone(Matrix4x4 m, float l, float w0, float w1){
-		float len = Mathf.Sqrt(l*l + Mathf.Sqrt(w0-w1));
-		float a = l/len;
-		float b = (w0-w1)/len;
+		//float len = Mathf.Sqrt(l*l + Mathf.Sqrt(w0-w1));
+		// float a = l/len;
+		//float b = (w0-w1)/len;
 		const int N = 5;
 		for (int i=0;i<=N;i++){
 			float alpha = 2.0f*Mathf.PI*i/(float)N;
