@@ -7,6 +7,7 @@
 		_WindDir ("WindDir", Vector) = (0,0,0,0)
 		_UVScale ("UVScale", Float) = 1
 		_WindPower ("WindPower", Float) = 2
+		_WindChangeSpeed ("WindChangeSpeed", Float) = 2
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
@@ -32,10 +33,11 @@
 		float4 _WindDir;
 		float _UVScale;
 		float _WindPower;
+		float _WindChangeSpeed;
 
 		void vert (inout appdata_full v) {
 			float movement = pow(v.texcoord.x,_WindPower);
-			v.vertex.xyz += movement * tex2D (_MainTex, v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)).x*mul( (float3x3)_World2Object,_WindDir.xyz);
+			v.vertex.xyz += movement * tex2D (_MainTex, v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)*_WindChangeSpeed).x*mul( (float3x3)_World2Object,_WindDir.xyz);
 			v.texcoord.xy = float2(movement,movement);
        	}
 
