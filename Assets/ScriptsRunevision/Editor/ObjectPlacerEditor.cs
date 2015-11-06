@@ -14,7 +14,7 @@ public class ObjectPlacerEditor : Editor {
 
 		if (EditorGUI.EndChangeCheck ()) {
 			if (autoUpdate)
-				(target as ObjectPlacer).Place ();
+				UpdateScene ();
 		}
 
 		EditorGUILayout.Space ();
@@ -22,6 +22,12 @@ public class ObjectPlacerEditor : Editor {
 		autoUpdate = EditorGUILayout.Toggle ("Auto-update", autoUpdate);
 
 		if (GUILayout.Button ("Update"))
-			(target as ObjectPlacer).Place ();
+			UpdateScene ();
+	}
+
+	void UpdateScene () {
+		ObjectPlacer placer = target as ObjectPlacer;
+		placer.Place ();
+		placer.UpdateGlobals ();
 	}
 }

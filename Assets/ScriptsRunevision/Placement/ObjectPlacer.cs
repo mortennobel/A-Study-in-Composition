@@ -46,12 +46,26 @@ public class ObjectPlacer : MonoBehaviour {
 	public Variation branchesVariation;
 	public Variation leavesVariation;
 
+	[Space (6)]
+
+	public Material ground;
+	public Material skybox;
+	public Light sunLight;
+
+	public Color groundColor;
+	public Color skyColor;
+	public Color horizonColor;
+	public Color lightColor;
+	[Range (0.0f, 1.0f)]
+	public float fogDensity;
+
 	Transform dynamicRoot;
 	MaterialPropertyBlock propertyBlock;
 	static RandomHash hash = new RandomHash (0);
 
 	void Start () {
 		Place ();
+		UpdateGlobals ();
 	}
 
 	public void Place () {
@@ -95,6 +109,26 @@ public class ObjectPlacer : MonoBehaviour {
 		}
 
 		DestroyImmediate (prefab);
+	}
+
+	public void UpdateGlobals () {
+		// Ground
+		ground.SetColor ("_Color", groundColor);
+
+		// Sky
+		skybox.SetColor ("_SkyColor1", skyColor);
+		skybox.SetColor ("_SkyColor2", horizonColor);
+
+		// Sunlight
+		skybox.SetColor ("_SunColor", lightColor);
+		sunLight.color = lightColor;
+
+		// Fog
+		float skyIntensity = skybox.GetFloat ("_SkyIntensity");
+		RenderSettings.fogColor = horizonColor * skyIntensity;
+		RenderSettings.fogDensity = fogDensity * 0.1f;
+		// Make horizon color go further up the sky the denser the fog.
+		skybox.SetFloat ("_SkyExponent1", Mathf.Max (0, 3 - fogDensity * 7));
 	}
 
 	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z) {
@@ -142,10 +176,10 @@ public class ObjectPlacer : MonoBehaviour {
 		Vector4 color2hsv = ColorUtility.RGBToHSV (variation.color2);
 
 		// Wrap hue since hue is in a circular space.
-		if (color1hsv.w < color2hsv.w - 0.5f)
-			color1hsv.w += 1;
-		if (color1hsv.w > color2hsv.w + 0.5f)
-			color1hsv.w -= 1;
+		if (color1hsv.x < color2hsv.x - 0.5f)
+			color1hsv.x += 1;
+		if (color1hsv.x > color2hsv.x + 0.5f)
+			color1hsv.x -= 1;
 
 		Vector4 combinedHsv = Vector4.Lerp (color1hsv, color2hsv, t);
 		return ColorUtility.HSVToRGB (combinedHsv);
