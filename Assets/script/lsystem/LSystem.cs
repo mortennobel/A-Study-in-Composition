@@ -84,14 +84,17 @@ public class LSystem : MonoBehaviour {
 		renderer.material = material;
 	}
 
+
+
 	public Mesh[] Build(){
-		ResetRandom (seed);
-		ExpandRules();
+		ResetRandom (seed);		 		
+		ExpandRules();		 		
+					
 		Mesh meshBranches;
 		Mesh meshLeaves;
 		Interpret(out meshBranches, out meshLeaves);
 		return new Mesh[] { meshBranches, meshLeaves };
-	}
+ 	}
 
 	void UpdateTree(){
 		var meshes = Build ();
@@ -244,21 +247,22 @@ public class LSystem : MonoBehaviour {
 			}
 		}
 
-		Mesh mesh = new Mesh();
+		meshBranches = new Mesh();
 		if (vertices.Count >= 65536) {
 			Debug.LogError ("Tree - too many verts: "+vertices.Count);
 		} else {
-			mesh.vertices = vertices.ToArray ();
-			mesh.triangles = indices.ToArray ();
+			meshBranches.vertices = vertices.ToArray ();
+			meshBranches.triangles = indices.ToArray ();
 		}
 		vertices.Clear();
 		indices.Clear();
-		Mesh meshLeafs = new Mesh();
+
+		meshLeaves = new Mesh();
 		if (vertices.Count >= 65536) {
 			Debug.LogError ("Tree leaves - too many verts: "+vertices.Count);
 		} else {
-			meshLeafs.vertices = verticesLeaf.ToArray ();
-			meshLeafs.triangles = indicesLeaf.ToArray ();
+			meshLeaves.vertices = verticesLeaf.ToArray ();
+			meshLeaves.triangles = indicesLeaf.ToArray ();
 		}
 
 		verticesLeaf.Clear();
