@@ -70,6 +70,11 @@ public class ObjectPlacer : MonoBehaviour {
 		UpdateGlobals ();
 	}
 
+	void Update () {
+		if (Input.GetKeyDown (KeyCode.Return))
+			Randomize ();
+	}
+
 	public void Place () {
 		if (propertyBlock == null)
 			propertyBlock = new MaterialPropertyBlock ();
@@ -202,9 +207,8 @@ public class ObjectPlacer : MonoBehaviour {
 		return full * 0.5f + 0.5f;
 	}
 
-	System.Random rand = new System.Random ();
 	public void Randomize () {
-		int seed = rand.Next ();
+		int seed = new Rand ().Next ();
 		Debug.Log ("Randomizing with seed "+seed);
 		Randomize (seed);
 	}
@@ -224,12 +228,33 @@ public class ObjectPlacer : MonoBehaviour {
 			referenceParameters = go.GetComponent<ObjectPlacer> ();
 		}
 
-		RandomHash hash = new RandomHash (seed);
+		Rand hash = new Rand (seed);
 
+		RandomizePlacement (hash);
+		RandomizeColors (hash);
+
+		Place ();
+		UpdateGlobals ();
+	}
+
+	void RandomizePlacement (Rand hash) {
+		noiseSize1 = RandomVariation (hash, referenceParameters.noiseSize1, 0.5f);
+		noiseSize2 = RandomVariation (hash, referenceParameters.noiseSize2, 0.5f);
+		threshold = RandomVariation (hash, referenceParameters.threshold, 0.4f);
+		randomness = RandomVariation (hash, referenceParameters.randomness, 1.0f);
+		scaleBase = RandomVariation (hash, referenceParameters.scaleBase, 0.3f);
+	}
+
+	float RandomVariation (Rand hash, float reference, float fraction) {
+		float variation = reference * fraction;
+		return hash.Range (reference - variation, reference + variation);
+	}
+
+	void RandomizeColors (Rand hash) {
 		Color baseColor = ColorUtility.HSVToRGB (
-			hash.Value (0),
-			0.3f + 0.7f * Mathf.Sqrt (hash.Value (1)),
-			0.3f + 0.7f * Mathf.Sqrt (hash.Value (2))
+			hash.value,
+			0.3f + 0.7f * Mathf.Sqrt (hash.value),
+			0.1f + 0.9f * Mathf.Sqrt (hash.value)
 		);
 
 		List<Color> primaryColors = GetPrimaryColors (baseColor, hash);
@@ -254,19 +279,16 @@ public class ObjectPlacer : MonoBehaviour {
 		});
 		lightColor               = PickBestColor (primaryColors, referenceParameters.lightColor);
 
-		fogDensity = Mathf.Pow (hash.Value (4), 2);
-
-		Place ();
-		UpdateGlobals ();
+		fogDensity = Mathf.Pow (hash.value, 2);
 	}
 
-	List<Color> GetPrimaryColors (Color baseColor, RandomHash hash) {
+	List<Color> GetPrimaryColors (Color baseColor, Rand hash) {
 		List<Color> colors = new List<Color> ();
 		colors.Add (baseColor);
 
 		Vector4 hsv = ColorUtility.RGBToHSV (baseColor);
 
-		int selector = hash.Range (0, 2, 3);
+		int selector = hash.Range (0, 2);
 		if (selector == 0) {
 			hsv.x += 0.49f;
 			colors.Add (ColorUtility.HSVToRGB (hsv));
@@ -281,9 +303,9 @@ public class ObjectPlacer : MonoBehaviour {
 		return colors;
 	}
 
-	void AddVariationColors (List<Color> colors, RandomHash rand) {
-		int index = rand.Range (0, colors.Count, 4);
-		float t = rand.Range (0.3f, 0.7f, 5);
+	void AddVariationColors (List<Color> colors, Rand rand) {
+		int index = rand.Range (0, colors.Count);
+		float t = rand.Range (0.3f, 0.7f);
 		Color newColor = LerpColorInHSV (
 			colors[index],
 			colors[(index + 1) % colors.Count],
