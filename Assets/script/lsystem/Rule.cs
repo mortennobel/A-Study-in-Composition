@@ -36,19 +36,18 @@ public class Rule {
 
 				outList.Add (new LSElement (LSElement.LSSymbol.DRAW, length, endScale));
 				int no = Mathf.Clamp( Mathf.RoundToInt (Random.Range (lsys.branchNo.x, lsys.branchNo.y)),0,3);
-
-				for (int i = 0; i < no	; i++) {
-					outList.Add (new LSElement (LSElement.LSSymbol.PUSH_STATE));
-					outList.Add (new LSElement (LSElement.LSSymbol.TURN, lsys.Eval(turn[i])));
-					outList.Add (new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval(roll[i])));
-					float thinBranch = Mathf.Pow (1.0f - width / lsys.Eval (lsys.initialWidth),3.0f);
-					outList.Add (new LSElement (LSElement.LSSymbol.GRAVITY, thinBranch*lsys.gravity));
-					if (lastIter) {
-						outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
-					} else {
-						outList.Add (new LSElement (LSElement.LSSymbol.APEX, length * rs[i], width * widthScale[i]));	
+				if (lastIter) {
+					outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));
+				} else {
+					for (int i = 0; i < no; i++) {
+						outList.Add(new LSElement (LSElement.LSSymbol.PUSH_STATE));
+						outList.Add(new LSElement (LSElement.LSSymbol.TURN, lsys.Eval (turn [i])));
+						outList.Add(new LSElement (LSElement.LSSymbol.ROLL, lsys.Eval (roll [i])));
+						float thinBranch = Mathf.Pow (1.0f - width / lsys.Eval (lsys.initialWidth), 3.0f);
+						outList.Add(new LSElement (LSElement.LSSymbol.GRAVITY, thinBranch * lsys.gravity));
+						outList.Add(new LSElement (LSElement.LSSymbol.APEX, length * rs [i], width * widthScale [i]));	
+						outList.Add(new LSElement (LSElement.LSSymbol.POP_STATE));	
 					}
-					outList.Add (new LSElement (LSElement.LSSymbol.POP_STATE));	
 				}
 			} else {
 				outList.Add (new LSElement (LSElement.LSSymbol.LEAF_ROD, length, width));

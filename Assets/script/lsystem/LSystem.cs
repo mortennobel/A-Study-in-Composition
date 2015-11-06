@@ -59,6 +59,9 @@ public class LSystem : MonoBehaviour {
 	List<Vector3> verticesLeaf = new List<Vector3>();
 	List<int> indicesLeaf = new List<int>();
 
+	public int vertCount;
+	public int vertLeafCount;
+
 	void Start(){
 		seed = GetInstanceID ();
 		str = new List<LSElement>();
@@ -171,34 +174,63 @@ public class LSystem : MonoBehaviour {
 		len *= Eval(leafLength);
 		width *= Eval(leafWidth);
 
+		var direction = Turtle.QuaternionFromMatrix( m)* (Vector3.forward);
+		var rot = Quaternion.LookRotation (direction,Vector3.up);
+		var translate = m.GetColumn (3);
+		m.SetTRS (Vector3.zero, rot, Vector3.one);
+		m.SetColumn (3, translate);
+
 		float leafRot = Eval (leafRotate);
 		float w = width;
 		float l = len;
-		float mid = l * Eval(leafMid);
+		float midFrac = Eval (leafMid);
+		float mid = l * midFrac;
+		float gravityFactor = 1.0f*gravity;
 		Vector3 p0 = m.MultiplyPoint(new Vector3(0, 0, 0));
-		Vector3 p1 = m.MultiplyPoint(Quaternion.Euler(0,0,leafRot) * new Vector3(0, w, mid));
-		Vector3 p2 = m.MultiplyPoint(new Vector3(0, 0, l));
-		Vector3 p3 = m.MultiplyPoint(Quaternion.Euler(0,0,-leafRot) * new Vector3(0, -w, mid));
+		var m1 = m * Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0,0,leafRot), Vector3.one);
+		Vector3 p1 = Turtle.Gravity(m1, gravityFactor*midFrac).MultiplyPoint(Quaternion.Euler(0,0,leafRot) * new Vector3(0, w, mid));
+		Vector3 p2 = Turtle.Gravity(m, gravityFactor).MultiplyPoint(new Vector3(0, 0, l));
+		var m2 = m * Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0,0,-leafRot), Vector3.one);
+		Vector3 p3 = Turtle.Gravity(m2, gravityFactor*midFrac).MultiplyPoint(Quaternion.Euler(0,0,-leafRot)  * new Vector3(0, -w, mid));
+		Vector3 p4 = Turtle.Gravity(m, gravityFactor*0.3f).MultiplyPoint(new Vector3(0, 0, l*0.3f));
+
 		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p1);
+		verticesLeaf.Add (p4);
+
+		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p4);
+		verticesLeaf.Add (p3);
+
+		verticesLeaf.Add (p4);
 		verticesLeaf.Add (p1);
 		verticesLeaf.Add (p2);
 
-		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p4);
 		verticesLeaf.Add (p2);
 		verticesLeaf.Add (p3);
 
+		// backsides
+
 		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p4);
+		verticesLeaf.Add (p1);
+
+		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p3);
+		verticesLeaf.Add (p4);
+
+		verticesLeaf.Add (p4);
 		verticesLeaf.Add (p2);
 		verticesLeaf.Add (p1);
 
-
-		verticesLeaf.Add (p0);
+		verticesLeaf.Add (p4);
 		verticesLeaf.Add (p3);
 		verticesLeaf.Add (p2);
 
 
 
-		for (int j=0;j<12;j++){
+		for (int j=0;j<24;j++){
 			indicesLeaf.Add(indicesLeaf.Count);
 		}
 	}
@@ -226,7 +258,6 @@ public class LSystem : MonoBehaviour {
 			indices.Add (initialIndex+offset+1);
 			indices.Add (initialIndex+(offset+2)%(N*2));
 			indices.Add (initialIndex+(offset+3)%(N*2));
-
 		}
 	}
 
@@ -268,21 +299,25 @@ public class LSystem : MonoBehaviour {
 		if (vertices.Count >= 65536) {
 			Debug.LogError ("Tree - too many verts: "+vertices.Count);
 		} else {
+			vertCount = vertices.Count;
 			meshBranches.vertices = vertices.ToArray ();
 			meshBranches.triangles = indices.ToArray ();
 			PostprocessMesh (meshBranches);
+			//Debug.Log ("vertices "+vertices.Count);
 		}
 		vertices.Clear();
 		indices.Clear();
 
 		meshLeaves = new Mesh();
-		if (vertices.Count >= 65536) {
-			Debug.LogError ("Tree leaves - too many verts: "+vertices.Count);
+		if (verticesLeaf.Count >= 65536) {
+			Debug.LogError ("Tree leaves - too many verts: "+verticesLeaf.Count);
 		} else {
+			vertLeafCount = verticesLeaf.Count;
 			meshLeaves.vertices = verticesLeaf.ToArray ();
 			meshLeaves.triangles = indicesLeaf.ToArray ();
 			PostprocessMesh (meshLeaves);
 		}
+
 
 		verticesLeaf.Clear();
 		indicesLeaf.Clear();
