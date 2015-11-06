@@ -28,15 +28,19 @@ public class LSystem : MonoBehaviour {
 	[MinMaxRange(-180,180)]
 	public Vector2 roll3 = Vector2.one * 137;
 	[MinMaxRange(0.1f,1.0f)]
-	public Vector2 r1 = Vector2.one * 0.8f;
+	public Vector2 lengthScale1 = Vector2.one * 0.8f;
 	[MinMaxRange(0.1f,1.0f)]
-	public Vector2 r2 = Vector2.one * 0.8f;
+	public Vector2 lengthScale2 = Vector2.one * 0.8f;
+	[MinMaxRange(0.1f,1.0f)]
+	public Vector2 lengthScale3 = Vector2.one * 0.8f;
 	[MinMaxRange(0.1f,1.0f)]
 	public Vector2 q = Vector2.one * 0.5f;
 	[MinMaxRange(0.1f,1.0f)]
 	public Vector2 e = Vector2.one * 0.5f;
 	[MinMaxRange(0,2)]
 	public Vector2 smin = Vector2.one * 0;
+	[MinMaxRange(1,3)]
+	public Vector2 branchNo = Vector2.one * 2;
 	public int iter = 8;
 	[MinMaxRange(0,1)]
 	public Vector2 leafMid = Vector2.one * 0.5f;
@@ -142,7 +146,7 @@ public class LSystem : MonoBehaviour {
 
 		// string debug = "Expanding "+str[0]+" to ";
 
-		Rule r = new Rule(turn1, turn2, roll1, roll2, r1, r2, q, e, smin, this);
+		Rule r = new Rule(turn1, turn2, turn3, roll1, roll2, roll3, lengthScale1, lengthScale2, lengthScale3,  q, e, smin, branchNo, this);
 		bool continueLoop = true;
 		for (int i=0;continueLoop;i++){
 			continueLoop = false;
@@ -277,8 +281,8 @@ public class LSystem : MonoBehaviour {
 
 	void OnGUI(){
 		if (GUI.Button(new Rect(0,0,50,30), "Fig.a")){
-			r1 = Vector2.one*0.75f;
-			r2 = Vector2.one*0.77f;
+			lengthScale1 = Vector2.one*0.75f;
+			lengthScale2 = Vector2.one*0.77f;
 			turn1 = Vector2.one*35;
 			turn2 = Vector2.one*-35;
 			roll1 = Vector2.one*0;
@@ -291,8 +295,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(50,0,50,30), "Fig.b")){
-			r1 = Vector2.one*0.65f;
-			r2 = Vector2.one*0.71f;
+			lengthScale1 = Vector2.one*0.65f;
+			lengthScale2 = Vector2.one*0.71f;
 			turn1 = Vector2.one*27;
 			turn2 = Vector2.one*-68;
 			roll1 = Vector2.one*0;
@@ -305,8 +309,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(100,0,50,30), "Fig.c")){
-			r1 = Vector2.one*0.5f;
-			r2 = Vector2.one*0.85f;
+			lengthScale1 = Vector2.one*0.5f;
+			lengthScale2 = Vector2.one*0.85f;
 			turn1 = Vector2.one*25;
 			turn2 = Vector2.one*-15;
 			roll1 = Vector2.one*180;
@@ -319,8 +323,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(150,0,50,30), "Fig.d")){
-			r1 = Vector2.one*0.6f;
-			r2 = Vector2.one*0.85f;
+			lengthScale1 = Vector2.one*0.6f;
+			lengthScale2 = Vector2.one*0.85f;
 			turn1 = Vector2.one*25;
 			turn2 = Vector2.one*-15;
 			roll1 = Vector2.one*180;
@@ -333,8 +337,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(200,0,50,30), "Fig.e")){
-			r1 = Vector2.one*0.58f;
-			r2 = Vector2.one*0.83f;
+			lengthScale1 = Vector2.one*0.58f;
+			lengthScale2 = Vector2.one*0.83f;
 			turn1 = Vector2.one*30;
 			turn2 = Vector2.one*15;
 			roll1 = Vector2.one*0;
@@ -347,8 +351,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(250,0,50,30), "Fig.f")){
-			r1 = Vector2.one*0.92f;
-			r2 = Vector2.one*0.37f;
+			lengthScale1 = Vector2.one*0.92f;
+			lengthScale2 = Vector2.one*0.37f;
 			turn1 = Vector2.one*0;
 			turn2 = Vector2.one*60;
 			roll1 = Vector2.one*180;
@@ -361,8 +365,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(300,0,50,30), "Fig.g")){
-			r1 = Vector2.one*0.80f;
-			r2 = Vector2.one*0.80f;
+			lengthScale1 = Vector2.one*0.80f;
+			lengthScale2 = Vector2.one*0.80f;
 			turn1 = Vector2.one*30;
 			turn2 = Vector2.one*-30;
 			roll1 = Vector2.one*137;
@@ -375,8 +379,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(350,0,50,30), "Fig.h")){
-			r1 = Vector2.one*0.95f;
-			r2 = Vector2.one*0.75f;
+			lengthScale1 = Vector2.one*0.95f;
+			lengthScale2 = Vector2.one*0.75f;
 			turn1 = Vector2.one*5;
 			turn2 = Vector2.one*-30;
 			roll1 = Vector2.one*-90;
@@ -389,8 +393,8 @@ public class LSystem : MonoBehaviour {
 			UpdateTree ();
 		}
 		if (GUI.Button(new Rect(400,0,50,30), "Fig.i")){
-			r1 = Vector2.one*0.55f;
-			r2 = Vector2.one*0.95f;
+			lengthScale1 = Vector2.one*0.55f;
+			lengthScale2 = Vector2.one*0.95f;
 			turn1 = Vector2.one*-5;
 			turn2 = Vector2.one*30;
 			roll1 = Vector2.one*137;
