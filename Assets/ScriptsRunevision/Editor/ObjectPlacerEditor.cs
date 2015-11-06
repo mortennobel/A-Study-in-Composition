@@ -17,11 +17,11 @@ public class ObjectPlacerEditor : Editor {
 				(target as ObjectPlacer).Place ();
 		}
 
+		EditorGUILayout.Space ();
+
 		autoUpdate = EditorGUILayout.Toggle ("Auto-update", autoUpdate);
 
-		if (!autoUpdate) {
-			if (GUILayout.Button ("Update"))
-				(target as ObjectPlacer).Place ();
-		}
+		if (GUILayout.Button ("Update"))
+			(target as ObjectPlacer).Place ();
 	}
 }
