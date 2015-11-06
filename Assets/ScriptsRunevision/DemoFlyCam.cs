@@ -42,7 +42,7 @@ public class DemoFlyCam : MonoBehaviour {
 				transform.eulerAngles.y,
 				Quaternion.LookRotation (goal - transform.position).eulerAngles.y,
 				ref angleVelocity,
-				10f,
+				20f,
 				40f
 			),
 			0
@@ -66,5 +66,10 @@ public class DemoFlyCam : MonoBehaviour {
 	void SetNewScene () {
 		nextSceneTime += sceneSwitchFrequency;
 		placer.Randomize ();
+
+		float height = transform.position.y;
+		transform.position = new Vector3 (1.5f, height, -radius);
+		transform.forward = Vector3.forward;
+		goal = new Vector3 (rand.Range (-radius * 0.5f, radius * 0.5f), goal.y, radius);
 	}
 }

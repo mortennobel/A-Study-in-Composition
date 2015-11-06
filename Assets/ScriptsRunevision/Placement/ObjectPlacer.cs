@@ -17,6 +17,8 @@ public class ObjectPlacer : MonoBehaviour {
 	public GameObject prefab;
 	public LSystem generator;
 
+	public int placementSeed = 0;
+
 	[Range (1, 10)]
 	public float baseDist = 1;
 
@@ -97,10 +99,11 @@ public class ObjectPlacer : MonoBehaviour {
 			for (int z = zMin; z <= zMax; z++) {
 				// Calculate position.
 				Vector3 pos = new Vector3 (x * baseDist, 0, z  * baseDist);
+				Vector3 noisePos = pos + Vector3.up * placementSeed;
 
 				// Calculate two different noise values.
-				float noiseVal1 = FullToPositiveRange (SimplexNoise.Noise (pos / noiseSize1));
-				float noiseVal2 = FullToPositiveRange (SimplexNoise.Noise (pos / noiseSize2));
+				float noiseVal1 = FullToPositiveRange (SimplexNoise.Noise (noisePos / noiseSize1));
+				float noiseVal2 = FullToPositiveRange (SimplexNoise.Noise (noisePos / noiseSize2));
 
 				// Combine the two noise values.
 				float noise = Mathf.Sqrt (noiseVal1 * noiseVal2);
@@ -214,6 +217,7 @@ public class ObjectPlacer : MonoBehaviour {
 	}
 
 	ObjectPlacer referenceParameters;
+	LSystem referenceGenerator;
 
 	public void Randomize (int seed) {
 		if (!Application.isPlaying) {
@@ -224,30 +228,64 @@ public class ObjectPlacer : MonoBehaviour {
 		if (referenceParameters == null) {
 			gameObject.SetActive (false);
 			var go = Instantiate (gameObject);
+			var gen = Instantiate (generator.gameObject);
 			gameObject.SetActive (true);
 			referenceParameters = go.GetComponent<ObjectPlacer> ();
+			referenceGenerator = gen.GetComponent<LSystem> ();
 		}
 
 		Rand hash = new Rand (seed);
 
 		RandomizePlacement (hash);
 		RandomizeColors (hash);
+		RandomizeTrees (hash);
 
 		Place ();
 		UpdateGlobals ();
 	}
 
 	void RandomizePlacement (Rand hash) {
-		noiseSize1 = RandomVariation (hash, referenceParameters.noiseSize1, 0.5f);
+		placementSeed = hash.Next () % 1000;
+		noiseSize1 = RandomVariation (hash, referenceParameters.noiseSize1, 0.3f);
 		noiseSize2 = RandomVariation (hash, referenceParameters.noiseSize2, 0.5f);
-		threshold = RandomVariation (hash, referenceParameters.threshold, 0.4f);
-		randomness = RandomVariation (hash, referenceParameters.randomness, 1.0f);
+		threshold = RandomVariation (hash, referenceParameters.threshold, 0.2f);
+		randomness = RandomVariation (hash, referenceParameters.randomness, 0.5f);
 		scaleBase = RandomVariation (hash, referenceParameters.scaleBase, 0.3f);
+	}
+
+	void RandomizeTrees (Rand hash) {
+		generator.initialLength = RandomVariation (hash, referenceGenerator.initialLength, 0.3f);
+		generator.initialWidth = RandomVariation (hash, referenceGenerator.initialWidth, 0.3f);
+		generator.turn1 = RandomVariation (hash, referenceGenerator.turn1, 1.0f);
+		generator.turn2 = RandomVariation (hash, referenceGenerator.turn2, 1.0f);
+		generator.turn3 = RandomVariation (hash, referenceGenerator.turn3, 1.0f);
+		generator.roll1 = RandomVariation (hash, referenceGenerator.roll1, 1.0f);
+		generator.roll2 = RandomVariation (hash, referenceGenerator.roll2, 1.0f);
+		generator.roll3 = RandomVariation (hash, referenceGenerator.roll3, 1.0f);
+		generator.lengthScale1 = RandomVariation (hash, referenceGenerator.lengthScale1, 0.3f);
+		generator.lengthScale2 = RandomVariation (hash, referenceGenerator.lengthScale2, 0.3f);
+		generator.lengthScale3 = RandomVariation (hash, referenceGenerator.lengthScale3, 0.3f);
+		generator.q = RandomVariation (hash, referenceGenerator.q, 0.5f);
+		generator.e = RandomVariation (hash, referenceGenerator.e, 0.5f);
+		generator.branchNo = RandomVariation (hash, referenceGenerator.branchNo, 0.3f);
+		generator.iter = hash.Range (7, 9+1);
+		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.5f);
+		generator.leafRotate = RandomVariation (hash, referenceGenerator.leafRotate, 0.5f);
+		generator.gravity = RandomVariation (hash, referenceGenerator.gravity, 0.5f);
 	}
 
 	float RandomVariation (Rand hash, float reference, float fraction) {
 		float variation = reference * fraction;
 		return hash.Range (reference - variation, reference + variation);
+	}
+
+	Vector2 RandomVariation (Rand hash, Vector2 reference, float fraction) {
+		float variationMin = reference.x * fraction;
+		float variationMax = reference.y * fraction;
+		return new Vector2 (
+			hash.Range (reference.x - variationMin, reference.x + variationMin),
+			hash.Range (reference.y - variationMax, reference.y + variationMax)
+		);
 	}
 
 	void RandomizeColors (Rand hash) {
