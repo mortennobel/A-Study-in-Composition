@@ -2,6 +2,12 @@
 using System.Collections;
 using Runevision.Structures;
 
+[System.Serializable]
+public struct Variation {
+	public Color color1;
+	public Color color2;
+}
+
 [ExecuteInEditMode]
 public class ObjectPlacer : MonoBehaviour {
 
@@ -37,8 +43,8 @@ public class ObjectPlacer : MonoBehaviour {
 
 	[Space (6)]
 
-	public Color color1 = Color.red;
-	public Color color2 = Color.green;
+	public Variation branchesVariation;
+	public Variation leavesVariation;
 
 	Transform dynamicRoot;
 	MaterialPropertyBlock propertyBlock;
@@ -47,8 +53,7 @@ public class ObjectPlacer : MonoBehaviour {
 	void Start () {
 		Place ();
 	}
-	
-	// Update is called once per frame
+
 	public void Place () {
 		if (propertyBlock == null)
 			propertyBlock = new MaterialPropertyBlock ();
@@ -122,21 +127,28 @@ public class ObjectPlacer : MonoBehaviour {
 
 		// Set colors.
 		var rend = go.GetComponent<MeshRenderer> ();
-
 		rend.GetPropertyBlock (propertyBlock);
+		propertyBlock.SetColor ("_Color", GetColor (branchesVariation, randC));
+		rend.SetPropertyBlock (propertyBlock);
 
-		Vector4 color1hsv = ColorUtility.RGBToHSV (color1);
-		Vector4 color2hsv = ColorUtility.RGBToHSV (color2);
+		rend = go.transform.GetChild (0).GetComponent<MeshRenderer> ();
+		rend.GetPropertyBlock (propertyBlock);
+		propertyBlock.SetColor ("_Color", GetColor (leavesVariation, randC));
+		rend.SetPropertyBlock (propertyBlock);
+	}
+
+	Color GetColor (Variation variation, float t) {
+		Vector4 color1hsv = ColorUtility.RGBToHSV (variation.color1);
+		Vector4 color2hsv = ColorUtility.RGBToHSV (variation.color2);
+
 		// Wrap hue since hue is in a circular space.
 		if (color1hsv.w < color2hsv.w - 0.5f)
 			color1hsv.w += 1;
 		if (color1hsv.w > color2hsv.w + 0.5f)
 			color1hsv.w -= 1;
-		Vector4 combinedHsv = Vector4.Lerp (color1hsv, color2hsv, randC);
-		Color combined = ColorUtility.HSVToRGB (combinedHsv);
 
-		propertyBlock.SetColor ("_Color", combined);
-		rend.SetPropertyBlock (propertyBlock);
+		Vector4 combinedHsv = Vector4.Lerp (color1hsv, color2hsv, t);
+		return ColorUtility.HSVToRGB (combinedHsv);
 	}
 
 	static float FullToPositiveRange (float full) {
