@@ -6,6 +6,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 	public Bounds bounds = new Bounds (Vector3.zero, Vector3.one * 40);
 	public GameObject prefab;
+	public LSystem generator;
 
 	[Range (1, 10)]
 	public float baseDist = 1;
@@ -45,6 +46,8 @@ public class ObjectPlacer : MonoBehaviour {
 		dynamicRoot = new GameObject ("Objects").transform;
 		dynamicRoot.SetParent (transform, false);
 
+		GameObject prefab = generator.BuildGameObject ();
+
 		int xMin = Mathf.CeilToInt (bounds.min.x / baseDist);
 		int zMin = Mathf.CeilToInt (bounds.min.z / baseDist);
 		int xMax = Mathf.FloorToInt (bounds.max.x / baseDist);
@@ -67,30 +70,34 @@ public class ObjectPlacer : MonoBehaviour {
 
 				// Place object if noise value is higher than threshold.
 				if (noise > thresholdWithRandomness)
-					PlaceObject (pos, x, z);
+					PlaceObject (prefab, pos, x, z);
 			}
 		}
+
+		DestroyImmediate (prefab);
 	}
 
-	void PlaceObject (Vector3 pos, int x, int z) {
+	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z) {
 		// Calculate independent random values.
 		float randX = hash.Range (-0.5f, 0.5f, x, z, 1);
 		float randZ = hash.Range (-0.5f, 0.5f, x, z, 2);
 		float randR = hash.Range (-0.5f, 0.5f, x, z, 3);
 		float randS = hash.Range (-1.0f, 1.0f, x, z, 4);
 
+		GameObject go = (GameObject)Instantiate (prefab);
+
 		pos += new Vector3 (
 			(randX * positionJitter) * baseDist,
 			0,
 			(randZ * positionJitter) * baseDist
 		);
-		float rotation = randR * 360;
+		go.transform.localPosition = pos;
 
-		GameObject go =
-			(GameObject)Instantiate (prefab, pos, Quaternion.Euler (0, rotation, 0));
+		float rotation = randR * 360;
+		go.transform.Rotate (0, rotation, 0, Space.World);
 
 		float scale = Mathf.Pow (2, randS * scaleVariation);
-		go.transform.localScale = Vector3.one * scale;
+		go.transform.localScale *= scale;
 
 		go.transform.SetParent (dynamicRoot, false);
 	}

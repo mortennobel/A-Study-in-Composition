@@ -5,6 +5,8 @@ using System.Collections.Generic;
 public class LSystem : MonoBehaviour {
 	public MeshFilter branches;
 	public MeshFilter leaves;
+	public Material branchesMat;
+	public Material leavesMat;
 	List<LSElement> str;
 
 	public int seed = 0;
@@ -52,10 +54,43 @@ public class LSystem : MonoBehaviour {
 		UpdateTree ();
 	}
 
+	public GameObject BuildGameObject () {
+		seed = GetInstanceID ();
+		str = new List<LSElement>();
+
+		ResetRandom (seed);
+		ExpandRules();
+		Mesh meshBranches;
+		Mesh meshLeaves;
+		Interpret(out meshBranches, out meshLeaves);
+
+		GameObject go = new GameObject ("Tree");
+		GameObject goLeaves = new GameObject ("Leaves");
+		goLeaves.transform.parent = go.transform;
+
+		go.transform.localScale = Vector3.one * 0.01f;
+		go.transform.localEulerAngles = -Vector3.right * 90;
+
+		SetupMeshOnGameObject (go, meshBranches, branchesMat);
+		SetupMeshOnGameObject (goLeaves, meshLeaves, leavesMat);
+
+		return go;
+	}
+
+	void SetupMeshOnGameObject (GameObject go, Mesh mesh, Material material) {
+		var filter = go.AddComponent<MeshFilter> ();
+		filter.sharedMesh = mesh;
+		var renderer = go.AddComponent<MeshRenderer> ();
+		renderer.material = material;
+	}
+
 	public Mesh[] Build(){
 		ResetRandom (seed);
 		ExpandRules();
-		return Interpret();
+		Mesh meshBranches;
+		Mesh meshLeaves;
+		Interpret(out meshBranches, out meshLeaves);
+		return new Mesh[] { meshBranches, meshLeaves };
 	}
 
 	void UpdateTree(){
@@ -163,7 +198,7 @@ public class LSystem : MonoBehaviour {
 		}
 	}
 
-	public Mesh[] Interpret(){
+	public void Interpret(out Mesh meshBranches, out Mesh meshLeaves){
 		Turtle turtle = new Turtle(Eval(initialWidth));
 
 		foreach (var elem in str){
@@ -193,18 +228,17 @@ public class LSystem : MonoBehaviour {
 				break;
 			}
 		}
-		Mesh mesh = new Mesh();
-		mesh.vertices = vertices.ToArray();
-		mesh.triangles = indices.ToArray();
+		meshBranches = new Mesh();
+		meshBranches.vertices = vertices.ToArray();
+		meshBranches.triangles = indices.ToArray();
 		vertices.Clear();
 		indices.Clear();
-		Mesh meshLeafs = new Mesh();
-		meshLeafs.vertices = verticesLeaf.ToArray();
-		meshLeafs.triangles = indicesLeaf.ToArray();
+
+		meshLeaves = new Mesh();
+		meshLeaves.vertices = verticesLeaf.ToArray();
+		meshLeaves.triangles = indicesLeaf.ToArray();
 		verticesLeaf.Clear();
 		indicesLeaf.Clear();
-
-		return new Mesh[]{mesh, meshLeafs};
 	}
 
 	void OnGUI(){
