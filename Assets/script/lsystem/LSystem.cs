@@ -108,11 +108,14 @@ public class LSystem : MonoBehaviour {
 		var meshes = Build ();
 		var meshFilters = new MeshFilter[]{branches,leaves};
 		for (int i = 0; i < meshes.Length; i++) {
-			meshes[i].RecalculateNormals ();
-			meshes[i].uv = new Vector2[meshes[i].vertexCount];
-			meshes [i].RecalculateBounds ();
 			meshFilters[i].mesh = meshes[i];
 		}
+	}
+
+	void PostprocessMesh (Mesh mesh) {
+		mesh.RecalculateNormals ();
+		mesh.uv = new Vector2[mesh.vertexCount];
+		mesh.RecalculateBounds ();
 	}
 
 	int count = 0;
@@ -263,6 +266,7 @@ public class LSystem : MonoBehaviour {
 		} else {
 			meshBranches.vertices = vertices.ToArray ();
 			meshBranches.triangles = indices.ToArray ();
+			PostprocessMesh (meshBranches);
 		}
 		vertices.Clear();
 		indices.Clear();
@@ -273,6 +277,7 @@ public class LSystem : MonoBehaviour {
 		} else {
 			meshLeaves.vertices = verticesLeaf.ToArray ();
 			meshLeaves.triangles = indicesLeaf.ToArray ();
+			PostprocessMesh (meshLeaves);
 		}
 
 		verticesLeaf.Clear();
