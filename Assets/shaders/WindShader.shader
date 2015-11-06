@@ -35,7 +35,7 @@
 
 		void vert (inout appdata_full v) {
 			float movement = pow(v.texcoord.x,_WindPower);
-			v.vertex.xyz += movement * tex2D (_MainTex, v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)).x*mul( (float3x3)_Object2World,_WindDir.xyz);
+			v.vertex.xyz += movement * tex2D (_MainTex, v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)).x*mul( (float3x3)_World2Object,_WindDir.xyz);
 			v.texcoord.xy = float2(movement,movement);
        	}
 
