@@ -2,6 +2,7 @@
 using System.Collections;
 using Runevision.Structures;
 
+[ExecuteInEditMode]
 public class ObjectPlacer : MonoBehaviour {
 
 	public Bounds bounds = new Bounds (Vector3.zero, Vector3.one * 40);
@@ -26,10 +27,21 @@ public class ObjectPlacer : MonoBehaviour {
 	[Range (0, 1)]
 	public float positionJitter = 0.6f;
 
+	[Space (6)]
+
+	[Range (0, 10)]
+	public float scaleBase = 1.0f;
+
 	[Range (0, 3)]
 	public float scaleVariation = 0.5f;
 
+	[Space (6)]
+
+	public Color color1 = Color.red;
+	public Color color2 = Color.green;
+
 	Transform dynamicRoot;
+	MaterialPropertyBlock propertyBlock;
 	static RandomHash hash = new RandomHash (0);
 
 	void Start () {
@@ -38,6 +50,9 @@ public class ObjectPlacer : MonoBehaviour {
 	
 	// Update is called once per frame
 	public void Place () {
+		if (propertyBlock == null)
+			propertyBlock = new MaterialPropertyBlock ();
+
 		if (transform.childCount != 0)
 			DestroyImmediate (transform.GetChild (0).gameObject);
 		if (dynamicRoot != null)
@@ -79,12 +94,18 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z) {
 		// Calculate independent random values.
+		// Showing them all together makes it easier to see if they're all independent.
 		float randX = hash.Range (-0.5f, 0.5f, x, z, 1);
 		float randZ = hash.Range (-0.5f, 0.5f, x, z, 2);
 		float randR = hash.Range (-0.5f, 0.5f, x, z, 3);
 		float randS = hash.Range (-1.0f, 1.0f, x, z, 4);
+		float randC = hash.Range (-1.0f, 1.0f, x, z, 5);
 
+		// Create object.
 		GameObject go = (GameObject)Instantiate (prefab);
+		go.transform.SetParent (dynamicRoot, false);
+
+		// Set position, rotation, and scale.
 
 		pos += new Vector3 (
 			(randX * positionJitter) * baseDist,
@@ -96,10 +117,26 @@ public class ObjectPlacer : MonoBehaviour {
 		float rotation = randR * 360;
 		go.transform.Rotate (0, rotation, 0, Space.World);
 
-		float scale = Mathf.Pow (2, randS * scaleVariation);
+		float scale = scaleBase * Mathf.Pow (2, randS * scaleVariation);
 		go.transform.localScale *= scale;
 
-		go.transform.SetParent (dynamicRoot, false);
+		// Set colors.
+		var rend = go.GetComponent<MeshRenderer> ();
+
+		rend.GetPropertyBlock (propertyBlock);
+
+		Vector4 color1hsv = ColorUtility.RGBToHSV (color1);
+		Vector4 color2hsv = ColorUtility.RGBToHSV (color2);
+		// Wrap hue since hue is in a circular space.
+		if (color1hsv.w < color2hsv.w - 0.5f)
+			color1hsv.w += 1;
+		if (color1hsv.w > color2hsv.w + 0.5f)
+			color1hsv.w -= 1;
+		Vector4 combinedHsv = Vector4.Lerp (color1hsv, color2hsv, randC);
+		Color combined = ColorUtility.HSVToRGB (combinedHsv);
+
+		propertyBlock.SetColor ("_Color", combined);
+		rend.SetPropertyBlock (propertyBlock);
 	}
 
 	static float FullToPositiveRange (float full) {
