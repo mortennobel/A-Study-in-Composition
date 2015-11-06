@@ -4,20 +4,26 @@ using Runevision.Structures;
 
 public class ObjectPlacer : MonoBehaviour {
 
-	public Bounds bounds = new Bounds (Vector3.zero, Vector3.one * 20);
+	public Bounds bounds = new Bounds (Vector3.zero, Vector3.one * 40);
 	public GameObject prefab;
 
 	[Range (1, 10)]
 	public float baseDist = 1;
 
 	[Range (1, 100)]
-	public float noiseSize1 = 10;
+	public float noiseSize1 = 40;
 
 	[Range (1, 100)]
-	public float noiseSize2 = 3;
+	public float noiseSize2 = 5;
 
 	[Range (0, 1)]
-	public float randomness = 0.5f;
+	public float threshold = 0.5f;
+
+	[Range (0, 1)]
+	public float randomness = 0.2f;
+
+	[Range (0, 1)]
+	public float positionJitter = 0.6f;
 
 	Transform dynamicRoot;
 	static RandomHash hash = new RandomHash (0);
@@ -40,23 +46,49 @@ public class ObjectPlacer : MonoBehaviour {
 		int zMax = Mathf.FloorToInt (bounds.max.z / baseDist);
 		for (int x = xMin; x <= xMax; x++) {
 			for (int z = zMin; z <= zMax; z++) {
-				Vector3 pos = new Vector3 (x * baseDist, 0, z * baseDist);
-				float noiseVal1 = SimplexNoise.Noise (pos / noiseSize1);
-				float noiseVal2 = SimplexNoise.Noise (pos / noiseSize2);
 
-				float randomVal = randomness * 2 * (hash.Value (x, z, 0) - 0.5f);
 
-				float noise = (noiseVal1 + 1) * (noiseVal2 + 1) / 2 - 1;
-				if (noise > randomVal)
-					PlaceObject (pos);
+				float rand2 = hash.Range (-0.5f, 0.5f, x, z, 2);
+
+				// Calculate position.
+				Vector3 pos = new Vector3 (x * baseDist, 0, z  * baseDist);
+
+				// Calculate two different noise values.
+				float noiseVal1 = FullToPositiveRange (SimplexNoise.Noise (pos / noiseSize1));
+				float noiseVal2 = FullToPositiveRange (SimplexNoise.Noise (pos / noiseSize2));
+
+				// Combine the two noise values.
+				float noise = Mathf.Sqrt (noiseVal1 * noiseVal2);
+
+				// Add randomness to threshold value.
+				float thresholdWithRandomness = threshold + randomness * rand2;
+
+				// Place object if noise value is higher than threshold.
+				if (noise > thresholdWithRandomness)
+					PlaceObject (pos, x, z);
 			}
 		}
 	}
 
-	void PlaceObject (Vector3 pos) {
-		float rotation = SimplexNoise.Noise (pos) * 360 * 10;
+	void PlaceObject (Vector3 pos, int x, int z) {
+		// Calculate independent random values.
+		float randX = hash.Range (-0.5f, 0.5f, x, z, 1);
+		float randZ = hash.Range (-0.5f, 0.5f, x, z, 2);
+		float randR = hash.Range (-0.5f, 0.5f, x, z, 3);
+
+		pos += new Vector3 (
+			(randX * positionJitter) * baseDist,
+			0,
+			(randZ * positionJitter) * baseDist
+		);
+		float rotation = randR * 360;
+
 		GameObject go =
 			(GameObject)Instantiate (prefab, pos, Quaternion.Euler (0, rotation, 0));
 		go.transform.SetParent (dynamicRoot, false);
+	}
+
+	static float FullToPositiveRange (float full) {
+		return full * 0.5f + 0.5f;
 	}
 }
