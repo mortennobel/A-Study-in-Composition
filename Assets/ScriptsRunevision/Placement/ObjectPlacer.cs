@@ -25,6 +25,9 @@ public class ObjectPlacer : MonoBehaviour {
 	[Range (0, 1)]
 	public float positionJitter = 0.6f;
 
+	[Range (0, 3)]
+	public float scaleVariation = 0.5f;
+
 	Transform dynamicRoot;
 	static RandomHash hash = new RandomHash (0);
 
@@ -34,6 +37,8 @@ public class ObjectPlacer : MonoBehaviour {
 	
 	// Update is called once per frame
 	public void Place () {
+		if (transform.childCount != 0)
+			DestroyImmediate (transform.GetChild (0).gameObject);
 		if (dynamicRoot != null)
 			DestroyImmediate (dynamicRoot.gameObject);
 
@@ -46,10 +51,6 @@ public class ObjectPlacer : MonoBehaviour {
 		int zMax = Mathf.FloorToInt (bounds.max.z / baseDist);
 		for (int x = xMin; x <= xMax; x++) {
 			for (int z = zMin; z <= zMax; z++) {
-
-
-				float rand2 = hash.Range (-0.5f, 0.5f, x, z, 2);
-
 				// Calculate position.
 				Vector3 pos = new Vector3 (x * baseDist, 0, z  * baseDist);
 
@@ -61,7 +62,8 @@ public class ObjectPlacer : MonoBehaviour {
 				float noise = Mathf.Sqrt (noiseVal1 * noiseVal2);
 
 				// Add randomness to threshold value.
-				float thresholdWithRandomness = threshold + randomness * rand2;
+				float rand = hash.Range (-0.5f, 0.5f, x, z, 0);
+				float thresholdWithRandomness = threshold + randomness * rand;
 
 				// Place object if noise value is higher than threshold.
 				if (noise > thresholdWithRandomness)
@@ -75,6 +77,7 @@ public class ObjectPlacer : MonoBehaviour {
 		float randX = hash.Range (-0.5f, 0.5f, x, z, 1);
 		float randZ = hash.Range (-0.5f, 0.5f, x, z, 2);
 		float randR = hash.Range (-0.5f, 0.5f, x, z, 3);
+		float randS = hash.Range (-1.0f, 1.0f, x, z, 4);
 
 		pos += new Vector3 (
 			(randX * positionJitter) * baseDist,
@@ -85,6 +88,10 @@ public class ObjectPlacer : MonoBehaviour {
 
 		GameObject go =
 			(GameObject)Instantiate (prefab, pos, Quaternion.Euler (0, rotation, 0));
+
+		float scale = Mathf.Pow (2, randS * scaleVariation);
+		go.transform.localScale = Vector3.one * scale;
+
 		go.transform.SetParent (dynamicRoot, false);
 	}
 
