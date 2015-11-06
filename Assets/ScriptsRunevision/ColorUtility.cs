@@ -24,6 +24,7 @@ public static class ColorUtility {
 			return Color.black;
 		else {
 			Color col = Color.black;
+			H = Mathf.Repeat (H, 1);
 			float Hval = H * 6f;
 			int sel = Mathf.FloorToInt(Hval);
 			float mod = Hval - sel;

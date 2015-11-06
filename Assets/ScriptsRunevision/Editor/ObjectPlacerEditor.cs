@@ -23,11 +23,21 @@ public class ObjectPlacerEditor : Editor {
 
 		if (GUILayout.Button ("Update"))
 			UpdateScene ();
+
+		if (Application.isPlaying) {
+			if (GUILayout.Button ("Randomize"))
+				RandomizeScene ();
+		}
 	}
 
 	void UpdateScene () {
 		ObjectPlacer placer = target as ObjectPlacer;
 		placer.Place ();
 		placer.UpdateGlobals ();
+	}
+
+	void RandomizeScene () {
+		ObjectPlacer placer = target as ObjectPlacer;
+		placer.Randomize ();
 	}
 }

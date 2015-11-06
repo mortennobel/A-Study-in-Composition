@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Runevision.Structures;
+using System.Linq;
 
 [System.Serializable]
 public struct Variation {
@@ -138,7 +140,7 @@ public class ObjectPlacer : MonoBehaviour {
 		float randZ = hash.Range (-0.5f, 0.5f, x, z, 2);
 		float randR = hash.Range (-0.5f, 0.5f, x, z, 3);
 		float randS = hash.Range (-1.0f, 1.0f, x, z, 4);
-		float randC = hash.Range (-1.0f, 1.0f, x, z, 5);
+		float randC = hash.Range ( 0.0f, 1.0f, x, z, 5);
 
 		// Create object.
 		GameObject go = (GameObject)Instantiate (prefab);
@@ -172,20 +174,149 @@ public class ObjectPlacer : MonoBehaviour {
 	}
 
 	Color GetColor (Variation variation, float t) {
-		Vector4 color1hsv = ColorUtility.RGBToHSV (variation.color1);
-		Vector4 color2hsv = ColorUtility.RGBToHSV (variation.color2);
+		return LerpColorInHSV (variation.color1, variation.color2, t);
+	}
 
+	Color LerpColorInHSV (Color a, Color b, float t) {
+		Vector4 aHsv = ColorUtility.RGBToHSV (a);
+		Vector4 bHsv = ColorUtility.RGBToHSV (b);
+
+		aHsv = WrapHueAround (aHsv, bHsv);
+
+		Vector4 combinedHsv = Vector4.Lerp (aHsv, bHsv, t);
+		Color rgb = ColorUtility.HSVToRGB (combinedHsv);
+		return rgb;
+	}
+
+	Color WrapHueAround (Vector4 colorToModify, Vector4 colorToCompareWith) {
 		// Wrap hue since hue is in a circular space.
-		if (color1hsv.x < color2hsv.x - 0.5f)
-			color1hsv.x += 1;
-		if (color1hsv.x > color2hsv.x + 0.5f)
-			color1hsv.x -= 1;
+		if (colorToModify.x < colorToCompareWith.x - 0.5f)
+			colorToModify.x += 1;
+		if (colorToModify.x > colorToCompareWith.x + 0.5f)
+			colorToModify.x -= 1;
 
-		Vector4 combinedHsv = Vector4.Lerp (color1hsv, color2hsv, t);
-		return ColorUtility.HSVToRGB (combinedHsv);
+		return colorToModify;
 	}
 
 	static float FullToPositiveRange (float full) {
 		return full * 0.5f + 0.5f;
+	}
+
+	System.Random rand = new System.Random ();
+	public void Randomize () {
+		int seed = rand.Next ();
+		Debug.Log ("Randomizing with seed "+seed);
+		Randomize (seed);
+	}
+
+	ObjectPlacer referenceParameters;
+
+	public void Randomize (int seed) {
+		if (!Application.isPlaying) {
+			Debug.LogError ("You may only randomize in play mode.");
+			return;
+		}
+
+		if (referenceParameters == null) {
+			gameObject.SetActive (false);
+			var go = Instantiate (gameObject);
+			gameObject.SetActive (true);
+			referenceParameters = go.GetComponent<ObjectPlacer> ();
+		}
+
+		RandomHash hash = new RandomHash (seed);
+
+		Color baseColor = ColorUtility.HSVToRGB (
+			hash.Value (0),
+			0.3f + 0.7f * Mathf.Sqrt (hash.Value (1)),
+			0.3f + 0.7f * Mathf.Sqrt (hash.Value (2))
+		);
+
+		List<Color> primaryColors = GetPrimaryColors (baseColor, hash);
+		AddVariationColors (primaryColors, hash);
+
+		branchesVariation.color1 = PickBestColor (primaryColors, referenceParameters.branchesVariation.color1);
+		branchesVariation.color2 = PickBestColor (primaryColors, referenceParameters.branchesVariation.color2);
+		leavesVariation.color1   = PickBestColor (primaryColors, referenceParameters.leavesVariation.color1);
+		leavesVariation.color2   = PickBestColor (primaryColors, referenceParameters.leavesVariation.color2);
+
+		groundColor              = PickBestColor (primaryColors, referenceParameters.groundColor);
+
+		skyColor                 = CalculateColor (primaryColors, referenceParameters.skyColor, e => {
+			e.y *= 0.9f; // decrease saturation
+			e.z = Mathf.Sqrt (e.z); // increase value
+			return e;
+		});
+		horizonColor             = CalculateColor (primaryColors, referenceParameters.horizonColor, e => {
+			e.y *= 0.4f; // decrease saturation
+			e.z = 0.1f + 0.9f * Mathf.Sqrt (e.z); // increase value
+			return e;
+		});
+		lightColor               = PickBestColor (primaryColors, referenceParameters.lightColor);
+
+		fogDensity = Mathf.Pow (hash.Value (4), 2);
+
+		Place ();
+		UpdateGlobals ();
+	}
+
+	List<Color> GetPrimaryColors (Color baseColor, RandomHash hash) {
+		List<Color> colors = new List<Color> ();
+		colors.Add (baseColor);
+
+		Vector4 hsv = ColorUtility.RGBToHSV (baseColor);
+
+		int selector = hash.Range (0, 2, 3);
+		if (selector == 0) {
+			hsv.x += 0.49f;
+			colors.Add (ColorUtility.HSVToRGB (hsv));
+		}
+		else if (selector == 1) {
+			hsv.x += 1/3f;
+			colors.Add (ColorUtility.HSVToRGB (hsv));
+			hsv.x += 1/3f;
+			colors.Add (ColorUtility.HSVToRGB (hsv));
+		}
+
+		return colors;
+	}
+
+	void AddVariationColors (List<Color> colors, RandomHash rand) {
+		int index = rand.Range (0, colors.Count, 4);
+		float t = rand.Range (0.3f, 0.7f, 5);
+		Color newColor = LerpColorInHSV (
+			colors[index],
+			colors[(index + 1) % colors.Count],
+			t
+		);
+		colors.Add (newColor);
+	}
+
+	Color PickBestColor (List<Color> colors, Color reference) {
+		Vector4 hsvReference = ColorUtility.RGBToHSV (reference);
+
+		float smallestDist = 100;
+		Vector4 bestColor = Vector4.zero;
+		for (int i = 0; i < colors.Count; i++) {
+			Vector4 hsvOption = ColorUtility.RGBToHSV (colors[i]);
+
+			hsvOption = WrapHueAround (hsvOption, hsvReference);
+
+			float dist = Vector4.Distance (hsvReference, hsvOption);
+			if (dist < smallestDist) {
+				smallestDist = dist;
+				bestColor = hsvOption;
+			}
+		}
+
+		return ColorUtility.HSVToRGB (bestColor);
+	}
+
+	delegate Vector4 HSVModifier (Vector4 inputHSV);
+
+	Color CalculateColor (List<Color> colors, Color reference, HSVModifier modifier) {
+		Color picked = PickBestColor (colors, reference);
+		Vector4 modified = modifier (ColorUtility.RGBToHSV (picked));
+		return ColorUtility.HSVToRGB (modified);
 	}
 }
