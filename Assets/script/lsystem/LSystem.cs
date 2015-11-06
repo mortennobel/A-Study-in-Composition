@@ -194,24 +194,36 @@ public class LSystem : MonoBehaviour {
 		Vector3 p3 = Turtle.Gravity(m2, gravityFactor*midFrac).MultiplyPoint(Quaternion.Euler(0,0,-leafRot)  * new Vector3(0, -w, mid));
 		Vector3 p4 = Turtle.Gravity(m, gravityFactor*0.3f).MultiplyPoint(new Vector3(0, 0, l*0.3f));
 
-		verticesLeaf.Add (p0);
-		verticesLeaf.Add (p1);
-		verticesLeaf.Add (p4);
+		int index = verticesLeaf.Count;
 
-		verticesLeaf.Add (p0);
-		verticesLeaf.Add (p4);
-		verticesLeaf.Add (p3);
+		verticesLeaf.Add (p0);// 0
+		verticesLeaf.Add (p1);// 1
+		verticesLeaf.Add (p4);// 2
 
-		verticesLeaf.Add (p4);
-		verticesLeaf.Add (p1);
-		verticesLeaf.Add (p2);
+		verticesLeaf.Add (p0);// 3
+		verticesLeaf.Add (p4);// 4
+		verticesLeaf.Add (p3);// 5
 
-		verticesLeaf.Add (p4);
-		verticesLeaf.Add (p2);
-		verticesLeaf.Add (p3);
+
+		verticesLeaf.Add (p2);// 6
+
+		verticesLeaf.Add (p2);// 7
+
+		for (int j=0;j<6;j++){
+			indicesLeaf.Add(index+j);
+		}
+		indicesLeaf.Add(index+1);
+		indicesLeaf.Add(index+6);
+		indicesLeaf.Add(index+2);
+
+
+		indicesLeaf.Add(index+5);
+		indicesLeaf.Add(index+4);
+		indicesLeaf.Add(index+7);
+
 
 		// backsides
-
+		index = verticesLeaf.Count;
 		verticesLeaf.Add (p0);
 		verticesLeaf.Add (p4);
 		verticesLeaf.Add (p1);
@@ -220,19 +232,22 @@ public class LSystem : MonoBehaviour {
 		verticesLeaf.Add (p3);
 		verticesLeaf.Add (p4);
 
-		verticesLeaf.Add (p4);
-		verticesLeaf.Add (p2);
-		verticesLeaf.Add (p1);
 
-		verticesLeaf.Add (p4);
-		verticesLeaf.Add (p3);
 		verticesLeaf.Add (p2);
 
+		verticesLeaf.Add (p2);
 
-
-		for (int j=0;j<24;j++){
-			indicesLeaf.Add(indicesLeaf.Count);
+		for (int j=0;j<6;j++){
+			indicesLeaf.Add(index+j);
 		}
+		indicesLeaf.Add(index+1);
+		indicesLeaf.Add(index+6);
+		indicesLeaf.Add(index+2);
+
+
+		indicesLeaf.Add(index+5);
+		indicesLeaf.Add(index+4);
+		indicesLeaf.Add(index+7);
 	}
 
 	void AddCone(Matrix4x4 m, float l, float w0, float w1){
