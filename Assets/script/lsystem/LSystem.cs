@@ -20,9 +20,13 @@ public class LSystem : MonoBehaviour {
 	[MinMaxRange(-180,180)]
 	public Vector2 turn2 = Vector2.one * -30;
 	[MinMaxRange(-180,180)]
+	public Vector2 turn3 = Vector2.one * -30;
+	[MinMaxRange(-180,180)]
 	public Vector2 roll1 = Vector2.one * 137;
 	[MinMaxRange(-180,180)]
 	public Vector2 roll2 = Vector2.one * 137;
+	[MinMaxRange(-180,180)]
+	public Vector2 roll3 = Vector2.one * 137;
 	[MinMaxRange(0.1f,1.0f)]
 	public Vector2 r1 = Vector2.one * 0.8f;
 	[MinMaxRange(0.1f,1.0f)]
@@ -139,11 +143,13 @@ public class LSystem : MonoBehaviour {
 		// string debug = "Expanding "+str[0]+" to ";
 
 		Rule r = new Rule(turn1, turn2, roll1, roll2, r1, r2, q, e, smin, this);
-		for (int i=0;i<iter;i++){
+		bool continueLoop = true;
+		for (int i=0;continueLoop;i++){
+			continueLoop = false;
 			List<LSElement> outList = new List<LSElement>();
 			bool lastIter = (i == iter-1);
 			foreach (var s in str){
-				r.Apply(s, outList, lastIter);
+				continueLoop |= r.Apply(s, outList, lastIter);
 			}
 			str = outList;
 		}
