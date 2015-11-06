@@ -17,6 +17,10 @@ public class Turtle {
 
 	}
 
+	public float GetDist(){
+		return turtleState.dist;
+	}
+
 	public static Matrix4x4 Gravity(Matrix4x4 m, float fraction){
 		Quaternion q = QuaternionFromMatrix(m);
 		Quaternion q1 = Quaternion.Euler (180, 0, 0);
@@ -48,6 +52,7 @@ public class Turtle {
 
 	public void Move(float dist){
 		turtleState.M = turtleState.M * Matrix4x4.TRS(new Vector3(0,0,dist), Quaternion.identity, Vector3.one);
+		turtleState.dist += dist;
 	}
 
 	// Store the current state
