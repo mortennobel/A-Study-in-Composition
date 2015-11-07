@@ -72,11 +72,6 @@ public class ObjectPlacer : MonoBehaviour {
 		UpdateGlobals ();
 	}
 
-	void Update () {
-		if (Input.GetKeyDown (KeyCode.Return))
-			Randomize ();
-	}
-
 	public void Place () {
 		if (propertyBlock == null)
 			propertyBlock = new MaterialPropertyBlock ();

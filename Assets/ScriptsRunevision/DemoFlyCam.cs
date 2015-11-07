@@ -17,14 +17,20 @@ public class DemoFlyCam : MonoBehaviour {
 
 	float nextSceneTime = 0;
 	Vector3 goal;
+	int sceneCount = 0;
+	float height;
+	Vector3 flyDir = Vector3.forward;
 
 	float angleVelocity;
 	Rand rand = new Rand ();
+	bool isBusy = false;
 
 	// Use this for initialization
 	void Start () {
-		SetNewScene ();
+		height = minHeight;
+		SetNewSceneInstant ();
 		nextSceneTime += fadeFromBlackTime;
+		StartCoroutine (FadeScreen (blackScreen, 0, fadeFromBlackTime));
 	}
 	
 	// Update is called once per frame
@@ -32,7 +38,10 @@ public class DemoFlyCam : MonoBehaviour {
 		if (Time.time > nextSceneTime)
 			SetNewScene ();
 
-		transform.Translate (Vector3.forward * speed * Time.deltaTime, Space.Self);
+		if (Input.GetKeyDown (KeyCode.Return))
+			SetNewScene ();
+
+		transform.Translate (flyDir * speed * Time.deltaTime, Space.Self);
 
 		transform.eulerAngles = new Vector3 (
 			0,
@@ -45,29 +54,79 @@ public class DemoFlyCam : MonoBehaviour {
 			),
 			0
 		);
-
-		if (blackScreen != null && blackScreen.alpha > 0) {
-			blackScreen.alpha = Mathf.MoveTowards (
-				blackScreen.alpha,
-				0,
-				Time.deltaTime / fadeFromBlackTime
-			);
-			if (blackScreen.alpha == 0)
-				blackScreen.gameObject.SetActive (false);
-		}
 	}
 
 	void SetNewScene () {
-		nextSceneTime += sceneSwitchFrequency;
+		if (isBusy)
+			return;
+		StartCoroutine (SetNewSceneRoutine ());
+	}
+
+	IEnumerator SetNewSceneRoutine () {
+		sceneCount++;
+
+		// Every n'th change we cut to black and maybe do a change in perspective.
+		if (sceneCount % 3 == 0) {
+
+			// Somtimes fly above the trees (most often not).
+			if (rand.value < 0.3f)
+				height = maxHeight;
+			else
+				height = minHeight;
+
+			// Sometimes fly sideways (most often not).
+			if (rand.value < 0.4f)
+				flyDir = Vector3.right * (rand.value < 0.5f ? 1 : -1);
+			else
+				flyDir = Vector3.forward;
+
+			// Cut to black.
+			yield return StartCoroutine (BlockScreen (blackScreen, 1, 1.0f));
+			yield return StartCoroutine (BlockScreen (blackScreen, 0, 0.5f));
+		}
+
+		SetNewSceneInstant ();
+	}
+
+	void SetNewSceneInstant () {
+		nextSceneTime = Time.time + sceneSwitchFrequency;
 		placer.Randomize ();
 
 		float angle = rand.Range (0f, 360f);
 		Quaternion rotation = Quaternion.Euler (0, angle, 0);
 
-		float height = transform.position.y;
 		transform.position = rotation * new Vector3 (0, height, -radius);
 		transform.forward = rotation * Vector3.forward;
 		float sideways = rand.Range (-0.5f, 0.5f) * radius;
 		goal = rotation * new Vector3 (sideways, goal.y, radius);
+	}
+
+	IEnumerator FadeScreen (CanvasGroup screen, float targetAlpha, float duration) {
+		isBusy = true;
+		screen.gameObject.SetActive (true);
+
+		while (screen.alpha != targetAlpha) {
+			screen.alpha = Mathf.MoveTowards (
+				screen.alpha,
+				targetAlpha,
+				Time.deltaTime / duration
+			);
+			yield return null;
+		}
+
+		screen.gameObject.SetActive (screen.alpha > 0);
+		isBusy = false;
+	}
+
+	IEnumerator BlockScreen (CanvasGroup screen, float targetAlpha, float duration) {
+		isBusy = true;
+		screen.gameObject.SetActive (true);
+		screen.alpha = 1;
+
+		yield return new WaitForSeconds (duration);
+
+		screen.alpha = targetAlpha;
+		screen.gameObject.SetActive (screen.alpha > 0);
+		isBusy = false;
 	}
 }
