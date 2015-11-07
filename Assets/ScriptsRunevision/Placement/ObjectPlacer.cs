@@ -55,11 +55,13 @@ public class ObjectPlacer : MonoBehaviour {
 	public Material ground;
 	public Material skybox;
 	public Light sunLight;
+	public StarField starField;
 
 	public Color groundColor;
 	public Color skyColor;
 	public Color horizonColor;
 	public Color lightColor;
+	public Color starsColor;
 	[Range (0.0f, 1.0f)]
 	public float fogDensity;
 
@@ -69,6 +71,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void Start () {
 		Place ();
+		starField = FindObjectOfType<StarField> ();
 		UpdateGlobals ();
 	}
 
@@ -123,6 +126,11 @@ public class ObjectPlacer : MonoBehaviour {
 		// Sky
 		skybox.SetColor ("_SkyColor1", skyColor);
 		skybox.SetColor ("_SkyColor2", horizonColor);
+
+		bool enableStarField = true;
+		if (starField) {
+			starField.SetColor (starsColor, enableStarField);
+		}
 
 		// Sunlight
 		skybox.SetColor ("_SunColor", lightColor);
@@ -299,6 +307,12 @@ public class ObjectPlacer : MonoBehaviour {
 		leavesVariation.color2   = PickBestColor (primaryColors, referenceParameters.leavesVariation.color2);
 
 		groundColor              = PickBestColor (primaryColors, referenceParameters.groundColor);
+
+		starsColor                 = CalculateColor (primaryColors, referenceParameters.starsColor, e => {
+			e.y *= 0.5f; // decrease saturation
+			e.z = Mathf.Sqrt (e.z); // increase value
+			return e;
+		});
 
 		skyColor                 = CalculateColor (primaryColors, referenceParameters.skyColor, e => {
 			e.y *= 0.9f; // decrease saturation
