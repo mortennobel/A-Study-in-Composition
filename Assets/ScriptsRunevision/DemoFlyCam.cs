@@ -35,6 +35,8 @@ public class DemoFlyCam : MonoBehaviour {
 		height = minHeight;
 		SetNewSceneInstant ();
 		nextSceneTime += fadeFromBlackTime;
+		blackScreen.gameObject.SetActive (true);
+		yield return new WaitForSeconds (1);
 		yield return StartCoroutine (FadeScreen (blackScreen, 0, fadeFromBlackTime));
 		title.SetActive (true);
 	}
