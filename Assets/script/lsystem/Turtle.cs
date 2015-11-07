@@ -24,7 +24,7 @@ public class Turtle {
 	public static Matrix4x4 Gravity(Matrix4x4 m, float fraction){
 		Quaternion q = QuaternionFromMatrix(m);
 		Quaternion q1 = Quaternion.Euler (180, 0, 0);
-		float currentAngle = Quaternion.Angle (q, q1);
+		//float currentAngle = Quaternion.Angle (q, q1);
 		Quaternion newDir = Quaternion.Slerp (q, q1, fraction);
 		return m * Matrix4x4.TRS(Vector3.zero, Quaternion.Inverse (q) * newDir, Vector3.one);
 	}
