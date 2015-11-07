@@ -22,6 +22,7 @@ public class DemoFlyCam : MonoBehaviour {
 	int sceneCount = 0;
 	float height;
 	Vector3 flyDir = Vector3.forward;
+	bool showingCredits = false;
 
 	float angleVelocity;
 	Rand rand = new Rand ();
@@ -38,12 +39,6 @@ public class DemoFlyCam : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Time.time > nextSceneTime)
-			SetNewScene ();
-
-		if (Input.GetKeyDown (KeyCode.Return))
-			SetNewScene ();
-
 		transform.Translate (flyDir * speed * Time.deltaTime, Space.Self);
 
 		transform.eulerAngles = new Vector3 (
@@ -57,6 +52,21 @@ public class DemoFlyCam : MonoBehaviour {
 			),
 			0
 		);
+
+		if (showingCredits) {
+			if (Input.GetKeyDown (KeyCode.Escape))
+				Application.Quit ();
+			return;
+		}
+
+		if (Time.time > nextSceneTime)
+			SetNewScene ();
+
+		if (Input.GetKeyDown (KeyCode.Return))
+			SetNewScene ();
+
+		if (Input.GetKeyDown (KeyCode.Escape))
+			ShowCredits ();
 	}
 
 	void SetNewScene () {
@@ -134,5 +144,18 @@ public class DemoFlyCam : MonoBehaviour {
 		screen.alpha = targetAlpha;
 		screen.gameObject.SetActive (screen.alpha > 0);
 		isBusy = false;
+	}
+
+	void ShowCredits () {
+		if (isBusy)
+			return;
+		StartCoroutine (ShowCreditsRoutine ());
+	}
+
+	IEnumerator ShowCreditsRoutine () {
+		showingCredits = true;
+		title.SetActive (false);
+		yield return StartCoroutine (FadeScreen (blackScreen, 1, 3));
+		yield return StartCoroutine (FadeScreen (credits, 1, 1));
 	}
 }
