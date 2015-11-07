@@ -26,11 +26,6 @@ public class AudioController : MonoBehaviour {
 	float nextEvent = 0;
 	int lastChangedLayer = 0;
 	Rand rand = new Rand ();
-
-	// Use this for initialization
-	void Start () {
-		nextEvent = Time.time + eventFrequency;
-	}
 	
 	// Update is called once per frame
 	void Update () {
