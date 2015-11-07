@@ -122,6 +122,9 @@ public class LSystem : MonoBehaviour {
 	void PostprocessMesh (Mesh mesh) {
 		mesh.RecalculateNormals ();
 		mesh.RecalculateBounds ();
+		var bounds = mesh.bounds;
+		bounds.size = bounds.size * 1.5f;
+		mesh.bounds = bounds;
 	}
 
 	int count = 0;
