@@ -21,6 +21,9 @@ public class StarField : MonoBehaviour {
 	}
 
 	void UpdateParticles(){
+		if (ps == null || particles == null)
+			return;
+
 		if (ps.particleCount > particles.Length) {
 			particles = new ParticleSystem.Particle[ps.particleCount];
 		}
@@ -31,11 +34,6 @@ public class StarField : MonoBehaviour {
 			particles [i].size = Random.Range (size.x, size.y);
 		}
 		ps.SetParticles (particles,particles.Length);
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
 	}
 
 	public void SetColor(Color color, bool enable){

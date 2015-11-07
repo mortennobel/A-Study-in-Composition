@@ -127,11 +127,6 @@ public class ObjectPlacer : MonoBehaviour {
 		skybox.SetColor ("_SkyColor1", skyColor);
 		skybox.SetColor ("_SkyColor2", horizonColor);
 
-		bool enableStarField = true;
-		if (starField) {
-			starField.SetColor (starsColor, enableStarField);
-		}
-
 		// Sunlight
 		skybox.SetColor ("_SunColor", lightColor);
 		sunLight.color = lightColor;
@@ -142,6 +137,12 @@ public class ObjectPlacer : MonoBehaviour {
 		RenderSettings.fogDensity = fogDensity * 0.1f;
 		// Make horizon color go further up the sky the denser the fog.
 		skybox.SetFloat ("_SkyExponent1", Mathf.Max (0, 3 - fogDensity * 7));
+
+		// Stars
+		bool enableStarField = fogDensity < 0.4f && skyColor.grayscale < 0.5f;
+		if (starField) {
+			starField.SetColor (starsColor, enableStarField);
+		}
 	}
 
 	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z) {
@@ -310,7 +311,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 		starsColor                 = CalculateColor (primaryColors, referenceParameters.starsColor, e => {
 			e.y *= 0.5f; // decrease saturation
-			e.z = Mathf.Sqrt (e.z); // increase value
+			e.z = 0.7f + 0.3f * Mathf.Sqrt (e.z); // increase value
 			return e;
 		});
 

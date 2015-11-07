@@ -14,6 +14,8 @@ public class DemoFlyCam : MonoBehaviour {
 
 	public ObjectPlacer placer;
 	public CanvasGroup blackScreen;
+	public GameObject title;
+	public CanvasGroup credits;
 
 	float nextSceneTime = 0;
 	Vector3 goal;
@@ -26,11 +28,12 @@ public class DemoFlyCam : MonoBehaviour {
 	bool isBusy = false;
 
 	// Use this for initialization
-	void Start () {
+	IEnumerator Start () {
 		height = minHeight;
 		SetNewSceneInstant ();
 		nextSceneTime += fadeFromBlackTime;
-		StartCoroutine (FadeScreen (blackScreen, 0, fadeFromBlackTime));
+		yield return StartCoroutine (FadeScreen (blackScreen, 0, fadeFromBlackTime));
+		title.SetActive (true);
 	}
 	
 	// Update is called once per frame
@@ -82,7 +85,10 @@ public class DemoFlyCam : MonoBehaviour {
 
 			// Cut to black.
 			yield return StartCoroutine (BlockScreen (blackScreen, 1, 1.0f));
+			if (title.activeInHierarchy)
+				yield return new WaitForSeconds (2);
 			yield return StartCoroutine (BlockScreen (blackScreen, 0, 0.5f));
+			title.SetActive (false);
 		}
 
 		SetNewSceneInstant ();
