@@ -30,6 +30,8 @@ public class DemoFlyCam : MonoBehaviour {
 
 	// Use this for initialization
 	IEnumerator Start () {
+		Cursor.visible = false;
+
 		height = minHeight;
 		SetNewSceneInstant ();
 		nextSceneTime += fadeFromBlackTime;
