@@ -1,38 +1,36 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using Runevision.Structures;
 
 public class DemoFlyCam : MonoBehaviour {
 
 	public float radius = 20;
-	public float speed = 5;
+	public float speed = 1;
 	public float minHeight = 1.5f;
-	public float maxHeight = 8.0f;
-	public float goalSwitchFrequency = 8;
+	public float maxHeight = 1.5f;
 	public float sceneSwitchFrequency = 10;
-	public ObjectPlacer placer;
+	public float fadeFromBlackTime = 5;
 
-	float nextGoalTime = 0;
+	public ObjectPlacer placer;
+	public CanvasGroup blackScreen;
+
 	float nextSceneTime = 0;
 	Vector3 goal;
 
-	Vector3 velocity;
 	float angleVelocity;
 	Rand rand = new Rand ();
-	//float heightVelocity;
 
 	// Use this for initialization
 	void Start () {
-		SetNewGoal ();
+		SetNewScene ();
+		nextSceneTime += fadeFromBlackTime;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if (Time.time > nextSceneTime)
 			SetNewScene ();
-
-		if (Time.time > nextGoalTime)
-			SetNewGoal ();
 
 		transform.Translate (Vector3.forward * speed * Time.deltaTime, Space.Self);
 
@@ -48,18 +46,14 @@ public class DemoFlyCam : MonoBehaviour {
 			0
 		);
 
-		Debug.DrawRay (goal, Vector3.up * 20, Color.white);
-	}
-
-	void SetNewGoal () {
-		nextGoalTime += goalSwitchFrequency;
-
-		goal = Quaternion.Euler (0, rand.Range (0, 360), 0) * Vector3.right * radius;
-		if (rand.value < 0.5f) {
-			if (rand.value < 0.7f)
-				goal.y = minHeight;
-			else
-				goal.y = maxHeight;
+		if (blackScreen != null && blackScreen.alpha > 0) {
+			blackScreen.alpha = Mathf.MoveTowards (
+				blackScreen.alpha,
+				0,
+				Time.deltaTime / fadeFromBlackTime
+			);
+			if (blackScreen.alpha == 0)
+				blackScreen.gameObject.SetActive (false);
 		}
 	}
 
@@ -67,9 +61,13 @@ public class DemoFlyCam : MonoBehaviour {
 		nextSceneTime += sceneSwitchFrequency;
 		placer.Randomize ();
 
+		float angle = rand.Range (0f, 360f);
+		Quaternion rotation = Quaternion.Euler (0, angle, 0);
+
 		float height = transform.position.y;
-		transform.position = new Vector3 (1.5f, height, -radius);
-		transform.forward = Vector3.forward;
-		goal = new Vector3 (rand.Range (-radius * 0.5f, radius * 0.5f), goal.y, radius);
+		transform.position = rotation * new Vector3 (0, height, -radius);
+		transform.forward = rotation * Vector3.forward;
+		float sideways = rand.Range (-0.5f, 0.5f) * radius;
+		goal = rotation * new Vector3 (sideways, goal.y, radius);
 	}
 }
