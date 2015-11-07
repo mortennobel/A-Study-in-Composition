@@ -1,4 +1,4 @@
-Landscape Study
+A study in composition
 ====
 
 ![alt tag](https://raw.githubusercontent.com/mortennobel/landscape_study/master/screenshot.png)
