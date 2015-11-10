@@ -33,7 +33,7 @@ public class DemoFlyCam : MonoBehaviour {
 		Cursor.visible = false;
 
 		height = minHeight;
-		SetNewSceneInstant ();
+		SetNewSceneInstant (true);
 		nextSceneTime += fadeFromBlackTime;
 		blackScreen.gameObject.SetActive (true);
 		yield return new WaitForSeconds (1);
@@ -83,7 +83,8 @@ public class DemoFlyCam : MonoBehaviour {
 		sceneCount++;
 
 		// Every n'th change we cut to black and maybe do a change in perspective.
-		if (sceneCount % 3 == 0) {
+		bool newTheme = (sceneCount % 3 == 0);
+		if (newTheme) {
 
 			// Somtimes fly above the trees (most often not).
 			if (rand.value < 0.3f)
@@ -105,12 +106,12 @@ public class DemoFlyCam : MonoBehaviour {
 			title.SetActive (false);
 		}
 
-		SetNewSceneInstant ();
+		SetNewSceneInstant (newTheme);
 	}
 
-	void SetNewSceneInstant () {
+	void SetNewSceneInstant (bool newScene) {
 		nextSceneTime = Time.time + sceneSwitchFrequency;
-		placer.Randomize ();
+		placer.Randomize (newScene);
 
 		float angle = rand.Range (0f, 360f);
 		Quaternion rotation = Quaternion.Euler (0, angle, 0);

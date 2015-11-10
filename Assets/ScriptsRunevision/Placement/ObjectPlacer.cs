@@ -19,6 +19,9 @@ public class ObjectPlacer : MonoBehaviour {
 
 	public int placementSeed = 0;
 
+	public float paletteValue = 0.6f;
+	public float paletteSaturation = 0.5f;
+
 	[Range (0.5f, 1.0f)]
 	public float baseDist = 1;
 
@@ -219,16 +222,16 @@ public class ObjectPlacer : MonoBehaviour {
 		return full * 0.5f + 0.5f;
 	}
 
-	public void Randomize () {
+	public void Randomize (bool newTheme = true) {
 		int seed = new Rand ().Next ();
 		Debug.Log ("Randomizing with seed "+seed);
-		Randomize (seed);
+		Randomize (seed, newTheme);
 	}
 
 	ObjectPlacer referenceParameters;
 	LSystem referenceGenerator;
 
-	public void Randomize (int seed) {
+	public void Randomize (int seed, bool newTheme = true) {
 		if (!Application.isPlaying) {
 			Debug.LogError ("You may only randomize in play mode.");
 			return;
@@ -245,17 +248,20 @@ public class ObjectPlacer : MonoBehaviour {
 
 		Rand hash = new Rand (seed);
 
-		RandomizePlacement (hash);
-		RandomizeColors (hash);
-		RandomizeTrees (hash);
+		RandomizePlacement (hash, newTheme);
+		RandomizeColors (hash, newTheme);
+		RandomizeTrees (hash, newTheme);
 
 		Place ();
 		UpdateGlobals ();
 	}
 
-	void RandomizePlacement (Rand hash) {
+	void RandomizePlacement (Rand hash, bool newTheme = true) {
 		placementSeed = hash.Next () % 1000;
-		baseDist = hash.Range (0.50f, 0.75f);
+
+		if (newTheme)
+			baseDist = hash.Range (0.50f, 0.75f);
+
 		noiseSize1 = RandomVariation (hash, referenceParameters.noiseSize1, 0.3f);
 		noiseSize2 = RandomVariation (hash, referenceParameters.noiseSize2, 0.5f);
 		threshold = RandomVariation (hash, referenceParameters.threshold, 0.15f);
@@ -263,7 +269,7 @@ public class ObjectPlacer : MonoBehaviour {
 		scaleBase = RandomVariation (hash, referenceParameters.scaleBase, 0.3f);
 	}
 
-	void RandomizeTrees (Rand hash) {
+	void RandomizeTrees (Rand hash, bool newTheme = true) {
 		generator.initialLength = RandomVariation (hash, referenceGenerator.initialLength, 0.3f);
 		generator.initialWidth = RandomVariation (hash, referenceGenerator.initialWidth, 0.7f);
 		generator.smallBranchBias = RandomVariation (hash, referenceGenerator.smallBranchBias, 1.0f);
@@ -282,7 +288,10 @@ public class ObjectPlacer : MonoBehaviour {
 		generator.e = RandomVariation (hash, referenceGenerator.e, 0.2f);
 		generator.branchNo = referenceGenerator.branchNo;
 		generator.iter = hash.Range (9, 10+1);
-		generator.showLeaves = (hash.value < 0.9f);
+
+		if (newTheme)
+			generator.showLeaves = (hash.value < 0.9f);
+
 		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.9f);
 		generator.leafRotate = RandomVariation (hash, referenceGenerator.leafRotate, 0.5f);
 		generator.gravity = RandomVariation (hash, referenceGenerator.gravity, 1.5f);
@@ -308,15 +317,19 @@ public class ObjectPlacer : MonoBehaviour {
 		return value;
 	}
 
-	void RandomizeColors (Rand hash) {
-		float value = 0.1f + 0.9f * Mathf.Sqrt (hash.value);
-		float saturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
+	void RandomizeColors (Rand hash, bool newTheme = true) {
+		if (newTheme) {
+			paletteValue = 0.1f + 0.9f * Mathf.Sqrt (hash.value);
+			paletteSaturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
 
-		// It seems low value combined with high saturation generally looks bad,
-		// so limit saturation somewhat based on value.
-		saturation *= value;
+			// It seems low value combined with high saturation generally looks bad,
+			// so limit saturation somewhat based on value.
+			paletteSaturation *= paletteValue;
 
-		Color baseColor = ColorUtility.HSVToRGB (hash.value, saturation, value);
+			fogDensity = Mathf.Pow (hash.value, 2);
+		}
+
+		Color baseColor = ColorUtility.HSVToRGB (hash.value, paletteSaturation, paletteValue);
 
 		List<Color> primaryColors = GetPrimaryColors (baseColor, hash);
 		AddVariationColors (primaryColors, hash);
@@ -328,7 +341,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 		groundColor              = PickBestColor (primaryColors, referenceParameters.groundColor);
 
-		starsColor                 = CalculateColor (primaryColors, referenceParameters.starsColor, e => {
+		starsColor               = CalculateColor (primaryColors, referenceParameters.starsColor, e => {
 			e.y *= 0.5f; // decrease saturation
 			e.z = 0.7f + 0.3f * Mathf.Sqrt (e.z); // increase value
 			return e;
@@ -345,8 +358,6 @@ public class ObjectPlacer : MonoBehaviour {
 			return e;
 		});
 		lightColor               = PickBestColor (primaryColors, referenceParameters.lightColor);
-
-		fogDensity = Mathf.Pow (hash.value, 2);
 	}
 
 	List<Color> GetPrimaryColors (Color baseColor, Rand hash) {
