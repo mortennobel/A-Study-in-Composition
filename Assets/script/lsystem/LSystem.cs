@@ -15,6 +15,16 @@ public class LSystem : MonoBehaviour {
 	public Vector2 initialLength = new Vector2(100,100);
 	[MinMaxRange(5,300)]
 	public Vector2 initialWidth = new Vector2(20,20);
+
+	[Range(0.01f, 0.5f)]
+	public float minTerminalWidthRatio = 0.05f;
+	[Range(0.005f, 0.5f)]
+	public float minBranchRatio = 0.05f;
+	[MinMaxRange(0.0f, 1.0f)]
+	public Vector2 smallBranchBias = Vector2.one * 0.5f;
+
+	[Space (6)]
+
 	[MinMaxRange(-180,180)]
 	public Vector2 turn1 = Vector2.one * 30;
 	[MinMaxRange(-180,180)]
@@ -34,14 +44,17 @@ public class LSystem : MonoBehaviour {
 	[MinMaxRange(0.1f,1.0f)]
 	public Vector2 lengthScale3 = Vector2.one * 0.8f;
 	[MinMaxRange(0.1f,1.0f)]
-	public Vector2 q = Vector2.one * 0.5f;
-	[MinMaxRange(0.1f,1.0f)]
 	public Vector2 e = Vector2.one * 0.5f;
 	[MinMaxRange(0,2)]
 	public Vector2 smin = Vector2.one * 0;
 	[MinMaxRange(1,3)]
 	public Vector2 branchNo = Vector2.one * 2;
 	public int iter = 8;
+
+	[Space (6)]
+
+	public bool showLeaves = true;
+
 	[MinMaxRange(0,1)]
 	public Vector2 leafMid = Vector2.one * 0.5f;
 	[MinMaxRange(0.01f,5)]
@@ -50,7 +63,10 @@ public class LSystem : MonoBehaviour {
 	public Vector2 leafWidth = Vector2.one * 2;
 	[MinMaxRange(-100,100)]
 	public Vector2 leafRotate = Vector2.one * 0;
-	//[MinMaxRange(0,1)]
+
+	[Space (6)]
+
+	[MinMaxRange(-1,1)]
 	public float gravity = 0.25f;
 
 	List<Vector3> vertices = new List<Vector3>();
@@ -63,7 +79,6 @@ public class LSystem : MonoBehaviour {
 
 	public int vertCount;
 	public int vertLeafCount;
-	public bool autoupdate = true;
 
 	void Start(){
 		seed = GetInstanceID ();
@@ -111,7 +126,7 @@ public class LSystem : MonoBehaviour {
 		return new Mesh[] { meshBranches, meshLeaves };
  	}
 
-	void UpdateTree(){
+	public void UpdateTree(){
 		var meshes = Build ();
 		var meshFilters = new MeshFilter[]{branches,leaves};
 		for (int i = 0; i < meshes.Length; i++) {
@@ -127,16 +142,10 @@ public class LSystem : MonoBehaviour {
 		mesh.bounds = bounds;
 	}
 
-	int count = 0;
 	void Update(){
 		if (Input.GetKey(KeyCode.R)){
 			UpdateTree ();
 		}
-#if UNITY_EDITOR
-		if (count++ % 30==0 && autoupdate) {
-			UpdateTree ();
-		}
-#endif
 	}
 
 	public static void ResetRandom(int seed1){
@@ -311,9 +320,6 @@ public class LSystem : MonoBehaviour {
 			indices.Add (initialIndex+offset+2);
 			indices.Add (initialIndex+(offset+4)%(N*3));
 			indices.Add (initialIndex+(offset+5)%(N*3));
-
-
-
 		}
 	}
 
@@ -401,7 +407,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*0;
 			roll2 = Vector2.one*0;
 			initialWidth = new Vector2(30,30);
-			q = Vector2.one*0.5f;
 			e = Vector2.one*0.4f;
 			smin = Vector2.one*0;
 			iter = 10;
@@ -415,7 +420,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*0;
 			roll2 = Vector2.one*0;
 			initialWidth = new Vector2(20,20);
-			q = Vector2.one*0.53f;
 			e = Vector2.one*0.5f;
 			smin = Vector2.one*1.7f;
 			iter = 10;
@@ -429,7 +433,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*180;
 			roll2 = Vector2.one*0;
 			initialWidth = new Vector2(20,20);
-			q = Vector2.one*0.45f;
 			e = Vector2.one*0.5f;
 			smin = Vector2.one*0.5f;
 			iter = 9;
@@ -443,7 +446,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*180;
 			roll2 = Vector2.one*180;
 			initialWidth = new Vector2(20,20);
-			q = Vector2.one*0.45f;
 			e = Vector2.one*0.5f;
 			smin = Vector2.one*0.0f;
 			iter = 10;
@@ -457,7 +459,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*0;
 			roll2 = Vector2.one*180;
 			initialWidth = new Vector2(20,20);
-			q = Vector2.one*0.40f;
 			e = Vector2.one*0.5f;
 			smin = Vector2.one*1.0f;
 			iter = 10;
@@ -471,7 +472,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*180;
 			roll2 = Vector2.one*0;
 			initialWidth = new Vector2(2,2);
-			q = Vector2.one*0.50f;
 			e = Vector2.one*0.0f;
 			smin = Vector2.one*0.5f;
 			iter = 12;
@@ -485,7 +485,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*137;
 			roll2 = Vector2.one*137;
 			initialWidth = new Vector2(30,30);
-			q = Vector2.one*0.50f;
 			e = Vector2.one*0.5f;
 			smin = Vector2.one*0.0f;
 			iter = 10;
@@ -499,7 +498,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*-90;
 			roll2 = Vector2.one*90;
 			initialWidth = new Vector2(40,40);
-			q = Vector2.one*0.60f;
 			e = Vector2.one*0.45f;
 			smin = Vector2.one*25.0f;
 			iter = 12;
@@ -513,7 +511,6 @@ public class LSystem : MonoBehaviour {
 			roll1 = Vector2.one*137;
 			roll2 = Vector2.one*137;
 			initialWidth = new Vector2(5,5);
-			q = Vector2.one*0.40f;
 			e = Vector2.one*0.00f;
 			smin = Vector2.one*5.0f;
 			iter = 12;

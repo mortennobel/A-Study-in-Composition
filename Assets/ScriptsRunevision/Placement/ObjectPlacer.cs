@@ -19,7 +19,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 	public int placementSeed = 0;
 
-	[Range (1, 10)]
+	[Range (0.5f, 1.0f)]
 	public float baseDist = 1;
 
 	[Range (1, 100)]
@@ -89,14 +89,19 @@ public class ObjectPlacer : MonoBehaviour {
 
 		GameObject prefab = generator.BuildGameObject ();
 
-		int xMin = Mathf.CeilToInt (bounds.min.x / baseDist);
-		int zMin = Mathf.CeilToInt (bounds.min.z / baseDist);
-		int xMax = Mathf.FloorToInt (bounds.max.x / baseDist);
-		int zMax = Mathf.FloorToInt (bounds.max.z / baseDist);
+		// Calculate spacing.
+		Mesh mainMesh = prefab.GetComponent<MeshFilter> ().sharedMesh;
+		Vector3 size = mainMesh.bounds.size * prefab.transform.localScale.x;
+		float spacing = baseDist * Mathf.Max (4, size.x, size.y);
+
+		int xMin = Mathf.CeilToInt (bounds.min.x / spacing);
+		int zMin = Mathf.CeilToInt (bounds.min.z / spacing);
+		int xMax = Mathf.FloorToInt (bounds.max.x / spacing);
+		int zMax = Mathf.FloorToInt (bounds.max.z / spacing);
 		for (int x = xMin; x <= xMax; x++) {
 			for (int z = zMin; z <= zMax; z++) {
 				// Calculate position.
-				Vector3 pos = new Vector3 (x * baseDist, 0, z  * baseDist);
+				Vector3 pos = new Vector3 (x * spacing, 0, z  * spacing);
 				Vector3 noisePos = pos + Vector3.up * placementSeed;
 
 				// Calculate two different noise values.
@@ -112,7 +117,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 				// Place object if noise value is higher than threshold.
 				if (noise > thresholdWithRandomness)
-					PlaceObject (prefab, pos, x, z);
+					PlaceObject (prefab, pos, x, z, spacing);
 			}
 		}
 
@@ -145,7 +150,7 @@ public class ObjectPlacer : MonoBehaviour {
 		}
 	}
 
-	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z) {
+	void PlaceObject (GameObject prefab, Vector3 pos, int x, int z, float spacing) {
 		// Calculate independent random values.
 		// Showing them all together makes it easier to see if they're all independent.
 		float randX = hash.Range (-0.5f, 0.5f, x, z, 1);
@@ -161,9 +166,9 @@ public class ObjectPlacer : MonoBehaviour {
 		// Set position, rotation, and scale.
 
 		pos += new Vector3 (
-			(randX * positionJitter) * baseDist,
+			(randX * positionJitter) * spacing,
 			0,
-			(randZ * positionJitter) * baseDist
+			(randZ * positionJitter) * spacing
 		);
 		go.transform.localPosition = pos;
 
@@ -250,32 +255,36 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void RandomizePlacement (Rand hash) {
 		placementSeed = hash.Next () % 1000;
+		baseDist = hash.Range (0.50f, 0.75f);
 		noiseSize1 = RandomVariation (hash, referenceParameters.noiseSize1, 0.3f);
 		noiseSize2 = RandomVariation (hash, referenceParameters.noiseSize2, 0.5f);
-		threshold = RandomVariation (hash, referenceParameters.threshold, 0.2f);
+		threshold = RandomVariation (hash, referenceParameters.threshold, 0.15f);
 		randomness = RandomVariation (hash, referenceParameters.randomness, 0.5f);
 		scaleBase = RandomVariation (hash, referenceParameters.scaleBase, 0.3f);
 	}
 
 	void RandomizeTrees (Rand hash) {
 		generator.initialLength = RandomVariation (hash, referenceGenerator.initialLength, 0.3f);
-		generator.initialWidth = RandomVariation (hash, referenceGenerator.initialWidth, 0.3f);
-		generator.turn1 = RandomVariation (hash, referenceGenerator.turn1, 1.0f);
-		generator.turn2 = RandomVariation (hash, referenceGenerator.turn2, 1.0f);
-		generator.turn3 = RandomVariation (hash, referenceGenerator.turn3, 1.0f);
-		generator.roll1 = RandomVariation (hash, referenceGenerator.roll1, 1.0f);
-		generator.roll2 = RandomVariation (hash, referenceGenerator.roll2, 1.0f);
-		generator.roll3 = RandomVariation (hash, referenceGenerator.roll3, 1.0f);
+		generator.initialWidth = RandomVariation (hash, referenceGenerator.initialWidth, 0.7f);
+		generator.smallBranchBias = RandomVariation (hash, referenceGenerator.smallBranchBias, 1.0f);
+		generator.turn1 = RandomVariation (hash, referenceGenerator.turn1, 1.3f);
+		generator.turn2 = RandomVariation (hash, referenceGenerator.turn2, 1.3f);
+		generator.turn3 = RandomVariation (hash, referenceGenerator.turn3, 1.3f);
+		generator.roll1 = RandomVariation (hash, referenceGenerator.roll1, 1.3f);
+		generator.roll2 = RandomVariation (hash, referenceGenerator.roll2, 1.3f);
+		generator.roll3 = RandomVariation (hash, referenceGenerator.roll3, 1.3f);
 		generator.lengthScale1 = RandomVariation (hash, referenceGenerator.lengthScale1, 0.3f);
 		generator.lengthScale2 = RandomVariation (hash, referenceGenerator.lengthScale2, 0.3f);
 		generator.lengthScale3 = RandomVariation (hash, referenceGenerator.lengthScale3, 0.3f);
-		generator.q = RandomVariation (hash, referenceGenerator.q, 0.5f);
-		generator.e = RandomVariation (hash, referenceGenerator.e, 0.5f);
-		generator.branchNo = RandomVariation (hash, referenceGenerator.branchNo, 0.3f);
-		generator.iter = hash.Range (7, 9+1);
-		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.5f);
+		generator.lengthScale1 = Clamp (generator.lengthScale1, 0.05f, 0.95f);
+		generator.lengthScale2 = Clamp (generator.lengthScale2, 0.05f, 0.95f);
+		generator.lengthScale3 = Clamp (generator.lengthScale3, 0.05f, 0.95f);
+		generator.e = RandomVariation (hash, referenceGenerator.e, 0.2f);
+		generator.branchNo = referenceGenerator.branchNo;
+		generator.iter = hash.Range (9, 10+1);
+		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.9f);
 		generator.leafRotate = RandomVariation (hash, referenceGenerator.leafRotate, 0.5f);
-		generator.gravity = RandomVariation (hash, referenceGenerator.gravity, 0.5f);
+		generator.gravity = RandomVariation (hash, referenceGenerator.gravity, 1.5f);
 	}
 
 	float RandomVariation (Rand hash, float reference, float fraction) {
@@ -292,10 +301,16 @@ public class ObjectPlacer : MonoBehaviour {
 		);
 	}
 
+	Vector2 Clamp (Vector2 value, float min, float max) {
+		value.x = Mathf.Clamp (value.x, min, max);
+		value.y = Mathf.Clamp (value.y, min, max);
+		return value;
+	}
+
 	void RandomizeColors (Rand hash) {
 		Color baseColor = ColorUtility.HSVToRGB (
 			hash.value,
-			0.3f + 0.7f * Mathf.Sqrt (hash.value),
+			0.2f + 0.5f * Mathf.Sqrt (hash.value),
 			0.1f + 0.9f * Mathf.Sqrt (hash.value)
 		);
 
