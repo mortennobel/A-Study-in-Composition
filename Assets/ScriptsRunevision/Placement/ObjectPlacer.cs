@@ -308,11 +308,14 @@ public class ObjectPlacer : MonoBehaviour {
 	}
 
 	void RandomizeColors (Rand hash) {
-		Color baseColor = ColorUtility.HSVToRGB (
-			hash.value,
-			0.2f + 0.5f * Mathf.Sqrt (hash.value),
-			0.1f + 0.9f * Mathf.Sqrt (hash.value)
-		);
+		float value = 0.1f + 0.9f * Mathf.Sqrt (hash.value);
+		float saturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
+
+		// It seems low value combined with high saturation generally looks bad,
+		// so limit saturation somewhat based on value.
+		saturation *= value;
+
+		Color baseColor = ColorUtility.HSVToRGB (hash.value, saturation, value);
 
 		List<Color> primaryColors = GetPrimaryColors (baseColor, hash);
 		AddVariationColors (primaryColors, hash);
@@ -332,12 +335,12 @@ public class ObjectPlacer : MonoBehaviour {
 
 		skyColor                 = CalculateColor (primaryColors, referenceParameters.skyColor, e => {
 			e.y *= 0.9f; // decrease saturation
-			e.z = Mathf.Sqrt (e.z); // increase value
+			e.z = Mathf.Pow (e.z, 0.7f); // increase value
 			return e;
 		});
 		horizonColor             = CalculateColor (primaryColors, referenceParameters.horizonColor, e => {
-			e.y *= 0.4f; // decrease saturation
-			e.z = 0.1f + 0.9f * Mathf.Sqrt (e.z); // increase value
+			e.y *= 0.5f; // decrease saturation
+			e.z = 0.1f + Mathf.Pow (e.z, 0.7f); // increase value
 			return e;
 		});
 		lightColor               = PickBestColor (primaryColors, referenceParameters.lightColor);
