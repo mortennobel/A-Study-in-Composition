@@ -282,6 +282,7 @@ public class ObjectPlacer : MonoBehaviour {
 		generator.e = RandomVariation (hash, referenceGenerator.e, 0.2f);
 		generator.branchNo = referenceGenerator.branchNo;
 		generator.iter = hash.Range (9, 10+1);
+		generator.showLeaves = (hash.value < 0.9f);
 		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.9f);
 		generator.leafRotate = RandomVariation (hash, referenceGenerator.leafRotate, 0.5f);
 		generator.gravity = RandomVariation (hash, referenceGenerator.gravity, 1.5f);

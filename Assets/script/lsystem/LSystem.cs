@@ -105,6 +105,8 @@ public class LSystem : MonoBehaviour {
 
 		SetupMeshOnGameObject (go, meshBranches, branchesMat);
 		SetupMeshOnGameObject (goLeaves, meshLeaves, leavesMat);
+		if (!showLeaves)
+			goLeaves.SetActive (false);
 
 		return go;
 	}
