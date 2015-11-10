@@ -3,7 +3,7 @@ using System.Collections;
 
 public class StarField : MonoBehaviour {
 
-	public Camera camera;
+	public Camera cam;
 	public ParticleSystem ps;
 	ParticleSystem.Particle[] particles;
 
@@ -14,7 +14,7 @@ public class StarField : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		camera = Camera.main;
+		cam = Camera.main;
 		ps = GetComponent<ParticleSystem> ();	
 		particles = new ParticleSystem.Particle[ps.particleCount];
 		SetColor (Color.white, false);
@@ -51,6 +51,6 @@ public class StarField : MonoBehaviour {
 	}
 
 	void LateUpdate(){
-		transform.position = camera.transform.position;
+		transform.position = cam.transform.position;
 	}
 }
