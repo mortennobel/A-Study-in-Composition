@@ -16,6 +16,11 @@ public class AudioController : MonoBehaviour {
 		[Range (0.01f, 1)]
 		public float volumeMultiplier;
 
+		// Min volume can be used to set the minimum target volume (before multiplier).
+		// or if below zero, to make it less likely to make this sound heard.
+		[Range (-1, 1)]
+		public float minVolume;
+
 		[Range (1, 30)]
 		public float fullChangeDuration;
 	}
@@ -48,8 +53,7 @@ public class AudioController : MonoBehaviour {
 		while (newLayer == lastChangedLayer)
 			newLayer = rand.Range (0, layers.Length);
 
-		// Make large possibility that volume is 0 (below 0).
-		float volume = rand.Range (-1.0f, 1.0f);
+		float volume = rand.Range (layers[newLayer].minVolume, 1.0f);
 		volume = Mathf.Clamp01 (volume);
 
 		layers[newLayer].targetVolume = volume;
