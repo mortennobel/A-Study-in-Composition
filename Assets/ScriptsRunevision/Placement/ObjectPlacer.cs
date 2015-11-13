@@ -290,7 +290,7 @@ public class ObjectPlacer : MonoBehaviour {
 		generator.iter = hash.Range (9, 10+1);
 
 		if (newTheme)
-			generator.showLeaves = (hash.value < 0.9f);
+			generator.showLeaves = (hash.value < 0.85f);
 
 		generator.leafMid = RandomVariation (hash, referenceGenerator.leafMid, 0.9f);
 		generator.leafRotate = RandomVariation (hash, referenceGenerator.leafRotate, 0.5f);
@@ -319,7 +319,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void RandomizeColors (Rand hash, bool newTheme = true) {
 		if (newTheme) {
-			paletteValue = 0.1f + 0.9f * Mathf.Sqrt (hash.value);
+			paletteValue = 0.1f + 0.9f * Mathf.Pow (hash.value, 0.7f);
 			paletteSaturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
 
 			// It seems low value combined with high saturation generally looks bad,
