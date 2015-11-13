@@ -37,7 +37,11 @@
 
 		void vert (inout appdata_full v) {
 			float movement = pow(v.texcoord.x,_WindPower);
-			v.vertex.xyz += movement * tex2D (_MainTex, v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)*_WindChangeSpeed).x*mul( (float3x3)_World2Object,_WindDir.xyz);
+			float4 noiseuv =  float4(v.vertex.xy*_UVScale + float2(_Time.x,_Time.x)*_WindChangeSpeed,0,0);
+
+			float noiseVal = tex2Dlod (_MainTex,noiseuv).x;
+			float3 localSpaceWind = mul( (float3x3)_World2Object, _WindDir.xyz);
+			v.vertex.xyz = v.vertex.xyz + movement * (noiseVal * localSpaceWind);
 			v.texcoord.xy = float2(movement,movement);
        	}
 
