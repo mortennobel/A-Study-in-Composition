@@ -319,7 +319,7 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void RandomizeColors (Rand hash, bool newTheme = true) {
 		if (newTheme) {
-			paletteValue = 0.1f + 0.9f * Mathf.Pow (hash.value, 0.7f);
+			paletteValue = Mathf.Sqrt (hash.value);
 			paletteSaturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
 
 			// It seems low value combined with high saturation generally looks bad,
