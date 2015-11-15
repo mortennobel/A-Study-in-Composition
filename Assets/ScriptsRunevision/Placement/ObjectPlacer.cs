@@ -319,12 +319,19 @@ public class ObjectPlacer : MonoBehaviour {
 
 	void RandomizeColors (Rand hash, bool newTheme = true) {
 		if (newTheme) {
-			paletteValue = Mathf.Sqrt (hash.value);
+			paletteValue = hash.value;
+			paletteValue = paletteValue * Mathf.Sqrt (3 - 2 * paletteValue);
 			paletteSaturation = 0.2f + 0.5f * Mathf.Sqrt (hash.value);
 
 			// It seems low value combined with high saturation generally looks bad,
 			// so limit saturation somewhat based on value.
-			paletteSaturation *= paletteValue;
+			paletteSaturation = Mathf.Lerp (
+				// For low value, use satuartion = value.
+				paletteValue,
+				// For high value, multiply saturation with value.
+				paletteSaturation * paletteValue,
+				paletteValue
+			);
 
 			fogDensity = Mathf.Pow (hash.value, 2);
 		}
