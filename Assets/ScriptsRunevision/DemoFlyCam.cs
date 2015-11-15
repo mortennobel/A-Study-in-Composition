@@ -16,6 +16,7 @@ public class DemoFlyCam : MonoBehaviour {
 	public CanvasGroup blackScreen;
 	public GameObject title;
 	public CanvasGroup credits;
+	public ScreenNormalReader normalReader;
 
 	float nextSceneTime = 0;
 	Vector3 goal;
@@ -43,19 +44,39 @@ public class DemoFlyCam : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		transform.Translate (flyDir * speed * Time.deltaTime, Space.Self);
+		float currentAngle = transform.eulerAngles.y;
+		float goalAngle = Quaternion.LookRotation (goal - transform.position).eulerAngles.y;
+		float targetAngle = goalAngle;
 
-		transform.eulerAngles = new Vector3 (
-			0,
-			Mathf.SmoothDampAngle (
-				transform.eulerAngles.y,
-				Quaternion.LookRotation (goal - transform.position).eulerAngles.y,
-				ref angleVelocity,
-				20f,
-				40f
-			),
-			0
-		);
+		if (flyDir.z > 0) {
+			float steering = Mathf.Sign (normalReader.normal.x);
+			float steeringAngle = currentAngle + steering * 120;
+
+			float closeness = Mathf.Clamp01 ((1 - normalReader.depthNormalized) * 2f);
+			targetAngle = Mathf.LerpAngle (goalAngle, steeringAngle, closeness);
+
+			Debug.DrawRay (
+				transform.TransformPoint (Vector3.forward),
+				transform.TransformVector (normalReader.normal),
+				Color.white
+			);
+			Debug.DrawRay (
+				transform.TransformPoint (Vector3.forward),
+				transform.TransformVector (normalReader.normal * closeness),
+				Color.red
+			);
+			Debug.DrawRay (
+				transform.TransformPoint (Vector3.forward),
+				transform.TransformVector (Vector3.right * steering * closeness),
+				Color.green
+			);
+		}
+
+		float newAngle = Mathf.SmoothDampAngle (currentAngle, targetAngle, ref angleVelocity, 10f, 40f);
+
+		transform.eulerAngles = new Vector3 (0, newAngle, 0);
+
+		transform.Translate (flyDir * speed * Time.deltaTime, Space.Self);
 
 		if (showingCredits) {
 			if (Input.GetKeyDown (KeyCode.Escape))
