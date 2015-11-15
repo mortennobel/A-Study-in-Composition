@@ -17,6 +17,7 @@ public class DemoFlyCam : MonoBehaviour {
 	public GameObject title;
 	public CanvasGroup credits;
 	public ScreenNormalReader normalReader;
+	public AudioController audioController;
 
 	float nextSceneTime = 0;
 	Vector3 goal;
@@ -183,5 +184,6 @@ public class DemoFlyCam : MonoBehaviour {
 		title.SetActive (false);
 		yield return StartCoroutine (FadeScreen (blackScreen, 1, 3));
 		yield return StartCoroutine (FadeScreen (credits, 1, 1));
+		audioController.FadeOut ();
 	}
 }

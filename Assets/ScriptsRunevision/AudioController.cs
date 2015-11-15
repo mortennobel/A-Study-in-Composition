@@ -31,10 +31,18 @@ public class AudioController : MonoBehaviour {
 	float nextEvent = 0;
 	int lastChangedLayer = 0;
 	Rand rand = new Rand ();
-	
+	public bool ending = false;
+
+	public void FadeOut () {
+		ending = true;
+		for (int i = 0; i < layers.Length; i++) {
+			layers[i].targetVolume = 0;
+		}
+	}
+
 	// Update is called once per frame
 	void Update () {
-		if (Time.time > nextEvent)
+		if (!ending && Time.time > nextEvent)
 			DoEvent ();
 
 		for (int i = 0; i < layers.Length; i++) {
