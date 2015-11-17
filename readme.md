@@ -21,9 +21,9 @@ An important element of evoking different moods despite the simple means is in t
 Contributions
 ---
 
-Geometry & Wind by Morten Nobel-Jørgensen (@mortennobel)
-Composition & Colors by Rune Skovbo Johansen (@runevision)
-Soundscape & Music by Andreas Frostholm
+Geometry & Wind by Morten Nobel-Jørgensen (@mortennobel)  
+Composition & Colors by Rune Skovbo Johansen (@runevision)  
+Soundscape & Music by Andreas Frostholm  
 
 License
 ---
