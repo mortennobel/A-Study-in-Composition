@@ -37,7 +37,6 @@ namespace UnityStandardAssets.CrossPlatformInput
 
                     o.AddComponent<UnityEngine.EventSystems.EventSystem>();
                     o.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-                    o.AddComponent<UnityEngine.EventSystems.TouchInputModule>();
                 }
             }
         }
@@ -46,14 +45,12 @@ namespace UnityStandardAssets.CrossPlatformInput
 
         private void OnEnable()
         {
-            EditorUserBuildSettings.activeBuildTargetChanged += Update;
             EditorApplication.update += Update;
         }
 
 
         private void OnDisable()
         {
-            EditorUserBuildSettings.activeBuildTargetChanged -= Update;
             EditorApplication.update -= Update;
         }
 

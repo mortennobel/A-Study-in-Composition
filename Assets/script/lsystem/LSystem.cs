@@ -151,7 +151,7 @@ public class LSystem : MonoBehaviour {
 	}
 
 	public static void ResetRandom(int seed1){
-		Random.seed = seed1;
+		Random.InitState (seed1);
 	}
 
 	public float Eval(Vector2 v){

@@ -30,8 +30,8 @@ public class StarField : MonoBehaviour {
 
 		ps.GetParticles (particles);
 		for (int i = 0; i < particles.Length; i++) {
-			particles [i].color = new Color(color.r,color.g,color.b,Random.value);
-			particles [i].size = Random.Range (size.x, size.y);
+			particles [i].startColor = new Color(color.r,color.g,color.b,Random.value);
+			particles [i].startSize = Random.Range (size.x, size.y);
 		}
 		ps.SetParticles (particles,particles.Length);
 	}

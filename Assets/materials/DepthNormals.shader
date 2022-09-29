@@ -23,7 +23,7 @@
 			//Our Vertex Shader
 			v2f vert (appdata_base v){
 			   v2f o;
-			   o.pos = mul (UNITY_MATRIX_MVP, v.vertex);
+			   o.pos = UnityObjectToClipPos (v.vertex);
 			   o.scrPos=ComputeScreenPos(o.pos);
 			   o.scrPos.y = 1 - o.scrPos.y;
 			   return o;
@@ -42,7 +42,7 @@
 				DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.scrPos.xy), depthValue, normalValues);
 				half4 ret;
 				ret.xyz = float4(normalValues, 1) * 0.5 + 0.5;
-				ret.w = float4(depthValue);
+				ret.w = depthValue;
 				return ret;
 			}
 			ENDCG

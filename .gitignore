@@ -1,5 +1,8 @@
 Library
 Temp
+Build
+.vs
+.vsconfig
 *.sln
 *.userprefs
 *.csproj
